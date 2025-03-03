@@ -15,7 +15,11 @@ interface SidebarProps {
   onClose: () => void;
 }
 
-export function Sidebar({ isOpen, onAddField, onClose }: SidebarProps) {
+export function Sidebar({
+  isOpen,
+  onAddField,
+  onClose
+}: SidebarProps) {
   const [activeTab, setActiveTab] = useState<string>("fields");
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, type: FieldType) => {
