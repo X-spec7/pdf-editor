@@ -43,7 +43,26 @@ export function PDFEditor() {
       title: "PDF uploaded successfully",
       description: `File: ${file.name}`,
     });
-  }, [toast])
+  }, [toast]);
+
+  const handleFileDownload = () => {
+    if (editedFile) {
+      // Create a URL for the edited file Blob
+      const url = URL.createObjectURL(editedFile);
+      // Create a temporary anchor element
+      const a = document.createElement('a');
+
+      // Set the href and download attributes of the anchor element
+      a.href = url;
+      a.download = 'edited.pdf';
+      // Append the anchor to the document body and click it to trigger the download
+      document.body.appendChild(a);
+      a.click();
+      // Remove the anchor from the document body and revoke the object URL
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  }
 
   return (
     <div className="flex h-screen w-full overflow-hidden">
@@ -71,6 +90,7 @@ export function PDFEditor() {
             fields={fields}
             selectedFieldId={selectedFieldId}
             editedFile={editedFile}
+            onFileDownload={handleFileDownload}
           />
         )}
       </div>

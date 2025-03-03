@@ -8,19 +8,20 @@ import { PDFField } from "@/lib/types";
 
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
+import { Button } from './ui/button';
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString();
 
 interface PDFViewerProps {
-  // pdfUrl: string;
   editedFile: Blob | null;
   fields: PDFField[];
   selectedFieldId: string | null;
+  onFileDownload: () => void;
 }
 
 export default function PDFViewer({
-  // pdfUrl,
   editedFile,
+  onFileDownload,
 }: PDFViewerProps) {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(0);
@@ -80,24 +81,32 @@ export default function PDFViewer({
             Next
           </button>
         </div>
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={handleZoomOut}
-            disabled={isLoading}
-            className="px-2 py-1 bg-secondary rounded disabled:opacity-50"
+        <div className="flex items-center justify-end gap-8">
+          <Button
+            variant='default'
+            onClick={onFileDownload}
           >
-            -
-          </button>
-          <span>{Math.round(scale * 100)}%</span>
-          <button
-            onClick={handleZoomIn}
-            disabled={isLoading}
-            className="px-2 py-1 bg-secondary rounded disabled:opacity-50"
-          >
-            +
-          </button>
+            Delete
+          </Button>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={handleZoomOut}
+              disabled={isLoading}
+              className="px-2 py-1 bg-secondary rounded disabled:opacity-50"
+            >
+              -
+            </button>
+            <span>{Math.round(scale * 100)}%</span>
+            <button
+              onClick={handleZoomIn}
+              disabled={isLoading}
+              className="px-2 py-1 bg-secondary rounded disabled:opacity-50"
+            >
+              +
+            </button>
+          </div>
         </div>
-      </div>
+        </div>
 
       <div 
         className="pdf-container flex-1 overflow-auto"
