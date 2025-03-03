@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { PDFField } from "@/lib/types";
@@ -75,21 +75,25 @@ export function DraggableField({
     });
   };
 
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!isDragging || !fieldRef.current) return;
-    
-    const parentRect = fieldRef.current.parentElement?.getBoundingClientRect();
-    if (!parentRect) return;
-    
-    const x = e.clientX - parentRect.left - dragOffset.x;
-    const y = e.clientY - parentRect.top - dragOffset.y;
-    
-    // Update position
-    fieldRef.current.style.left = `${x}px`;
-    fieldRef.current.style.top = `${y}px`;
-    
-    onMove(field.id, x, y);
-  };
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (!isDragging || !fieldRef.current) return;
+  
+      const parentRect = fieldRef.current.parentElement?.getBoundingClientRect();
+      if (!parentRect) return;
+  
+      const x = e.clientX - parentRect.left - dragOffset.x;
+      const y = e.clientY - parentRect.top - dragOffset.y;
+  
+      // Update position
+      fieldRef.current.style.left = `${x}px`;
+      fieldRef.current.style.top = `${y}px`;
+  
+      onMove(field.id, x, y);
+    },
+    [isDragging, dragOffset, onMove, field.id]
+  );
+  
 
   const handleMouseUp = () => {
     setIsDragging(false);
@@ -109,7 +113,7 @@ export function DraggableField({
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [isDragging]);
+  }, [isDragging, handleMouseMove]);
 
   const renderFieldContent = () => {
     switch (field.type) {
