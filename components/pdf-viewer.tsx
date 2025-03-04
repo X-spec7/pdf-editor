@@ -126,12 +126,8 @@ export default function PDFViewer({
   }
 
   const handleContainerClick = (e: React.MouseEvent) => {
-    console.log('container clicked: ', e.target)
-    // Only deselect if clicking directly on the container, not on a field
-    if (e.target === pageRef.current) {
-      console.log('deselecting ---------------->')
-      onSelectField(null)
-    }
+    // NOTE: D&D field can't be clicked here because it has stopped bubbling up of click event in D&D field.
+    onSelectField(null)
   }
 
   // Filter fields for the current page

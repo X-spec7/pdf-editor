@@ -62,7 +62,6 @@ export function DraggableField({
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!fieldRef.current) return
 
-    console.log('stop bubbling up')
     e.stopPropagation()
     onSelect()
 
@@ -152,7 +151,10 @@ export function DraggableField({
     <div
       ref={fieldRef}
       className={`absolute cursor-move flex items-center justify-center min-w-[100px] min-h-[40px] z-10 py-2 bg-white/80 rounded-md overflow-hidden ${isSelected ? "border-2 border-primary resize" : "border border-gray-400 resize-none"}`}
-      onClick={handleMouseDown}
+      onClick={(e) => {
+        e.stopPropagation()
+      }}
+      onMouseDown={handleMouseDown}
     >
       {renderFieldContent()}
 
