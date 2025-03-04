@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react"
 import { Menu } from "lucide-react"
-import { PDFDocument, rgb } from "pdf-lib"
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib"
 
 import type { FieldType, PDFField } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast"
@@ -78,10 +78,15 @@ export function PDFEditor() {
         const page = pdfDoc.getPage(field.page - 1)
         const { width, height } = page.getSize()
 
+        const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+        const renderedPDFWidth = 1000
+        const scaleFactor = width / renderedPDFWidth
+
         // Calculate the position in PDF coordinates (bottom-left origin)
         // Assuming the field coordinates are relative to the top-left of the page
-        const pdfX = field.x
-        const pdfY = height - field.y - field.height
+        const pdfX = field.x * scaleFactor
+        const pdfY = height - field.y * scaleFactor - font.heightAtSize(12) - 4
 
         switch (field.type) {
           case "text":
@@ -89,6 +94,7 @@ export function PDFEditor() {
             page.drawText(field.value || "", {
               x: pdfX,
               y: pdfY,
+              font: font,
               size: 12,
               color: rgb(0, 0, 0),
             })
