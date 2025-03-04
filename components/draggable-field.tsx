@@ -62,6 +62,7 @@ export function DraggableField({
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!fieldRef.current) return
 
+    console.log('stop bubbling up')
     e.stopPropagation()
     onSelect()
 
@@ -124,7 +125,7 @@ export function DraggableField({
             value={field.value}
             onChange={(e) => onValueChange(field.id, e.target.value)}
             placeholder="Text field"
-            className="w-full h-full border-none bg-transparent"
+            className="w-full h-full border-none border-transparent bg-transparent"
           />
         )
       case "signature":
@@ -150,16 +151,7 @@ export function DraggableField({
   return (
     <div
       ref={fieldRef}
-      className={`absolute field-item ${isSelected ? "border-2 border-primary" : "border border-gray-300"} bg-white/80 rounded-md overflow-hidden`}
-      style={{
-        position: "absolute",
-        left: `${field.x}px`,
-        top: `${field.y}px`,
-        width: `${field.width}px`,
-        height: `${field.height}px`,
-        resize: isSelected ? "both" : "none",
-        zIndex: isSelected ? 10 : 1,
-      }}
+      className={`absolute cursor-move flex items-center justify-center min-w-[100px] min-h-[40px] z-10 p-2 bg-white/80 rounded-md overflow-hidden ${isSelected ? "border-2 border-primary resize" : "border border-gray-100 resize-none"}`}
       onClick={onSelect}
       onMouseDown={handleMouseDown}
     >
@@ -167,13 +159,13 @@ export function DraggableField({
 
       {isSelected && (
         <button
-          className="absolute top-0 right-0 bg-destructive text-destructive-foreground rounded-bl-md p-1"
+          className="absolute top-0 right-0 text-destructive-foreground rounded-bl-md p-1"
           onClick={(e) => {
             e.stopPropagation()
             onDelete(field.id)
           }}
         >
-          <X className="h-3 w-3" />
+          <X className="h-3 w-3 rounded-full bg-gray-400" />
         </button>
       )}
     </div>

@@ -172,7 +172,7 @@ export function PDFEditor() {
 
   return (
     <div className="flex h-screen w-full overflow-hidden">
-      <Button variant="outline" size="icon" className="absolute top-4 left-4 z-10" onClick={toggleSidebar}>
+      <Button variant="outline" size="icon" className="absolute top-4 left-4 z-10 md:hidden" onClick={toggleSidebar}>
         <Menu className="h-4 w-4" />
       </Button>
 

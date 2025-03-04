@@ -126,8 +126,10 @@ export default function PDFViewer({
   }
 
   const handleContainerClick = (e: React.MouseEvent) => {
+    console.log('container clicked: ', e.target)
     // Only deselect if clicking directly on the container, not on a field
-    if (e.target === e.currentTarget || e.target === pageRef.current) {
+    if (e.target === pageRef.current) {
+      console.log('deselecting ---------------->')
       onSelectField(null)
     }
   }
@@ -211,7 +213,10 @@ export default function PDFViewer({
                       key={field.id}
                       field={field}
                       isSelected={selectedFieldId === field.id}
-                      onSelect={() => onSelectField(field.id)}
+                      onSelect={() => {
+                        console.log('field clicked: ', field.id)
+                        onSelectField(field.id)
+                      }}
                       onMove={handleFieldMove}
                       onResize={handleFieldResize}
                       onDelete={handleFieldDelete}
