@@ -11,7 +11,7 @@
         variant: {
           default: 'bg-blue-500 text-primary-foreground hover:bg-blue-600 rounded-xl',
           destructive:
-            'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+            'bg-destructive/60 text-destructive-foreground hover:bg-destructive/80 rounded-xl',
           outline:
             'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
           secondary:
