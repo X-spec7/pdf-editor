@@ -119,14 +119,14 @@ export default function PDFViewer({
           </div>
         ) : (
           <div 
-            className="relative pt-10"
+            className="relative pt-10 bg-gray-100"
             ref={containerRef}
           >
-            { editedFile && (
+            {editedFile && (
               <Document
                 file={editedFile}
                 onLoadSuccess={onDocumentLoaded}
-                className={'flex justify-center items-start h-screen overflow-auto'}
+                className={'flex justify-center items-start h-screen overflow-auto no-scrollbar'}
               >
                 <Page
                   width={1000}
