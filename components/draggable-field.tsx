@@ -84,8 +84,19 @@ export function DraggableField({
       const parentRect = fieldRef.current.parentElement?.getBoundingClientRect()
       if (!parentRect) return
 
-      const x = e.clientX - parentRect.left - dragOffset.x
-      const y = e.clientY - parentRect.top - dragOffset.y
+      const fieldRect = fieldRef.current.getBoundingClientRect()
+
+      const parentWidth = parentRect.width
+      const parentHeight = parentRect.height
+
+      const fieldWidth = fieldRect.width
+      const fieldHeight = fieldRect.height
+
+      let x = e.clientX - parentRect.left - dragOffset.x
+      let y = e.clientY - parentRect.top - dragOffset.y
+
+      x = Math.max(0, Math.min(x, parentWidth - fieldWidth))
+      y = Math.max(0, Math.min(y, parentHeight - fieldHeight))
 
       // Update position
       fieldRef.current.style.left = `${x}px`

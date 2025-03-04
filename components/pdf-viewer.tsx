@@ -209,10 +209,7 @@ export default function PDFViewer({
                       key={field.id}
                       field={field}
                       isSelected={selectedFieldId === field.id}
-                      onSelect={() => {
-                        console.log('field clicked: ', field.id)
-                        onSelectField(field.id)
-                      }}
+                      onSelect={() => onSelectField(field.id)}
                       onMove={handleFieldMove}
                       onResize={handleFieldResize}
                       onDelete={handleFieldDelete}
