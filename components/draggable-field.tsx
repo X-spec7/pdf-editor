@@ -42,22 +42,22 @@ export function DraggableField({
   }, [field.x, field.y, field.width, field.height])
 
   // Handle resize observer
-  useEffect(() => {
-    if (!fieldRef.current || !isSelected) return
+  // useEffect(() => {
+  //   if (!fieldRef.current || !isSelected) return
 
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const { width, height } = entry.contentRect
-        onResize(field.id, width, height)
-      }
-    })
+  //   const resizeObserver = new ResizeObserver((entries) => {
+  //     for (const entry of entries) {
+  //       const { width, height } = entry.contentRect
+  //       onResize(field.id, width, height)
+  //     }
+  //   })
 
-    resizeObserver.observe(fieldRef.current)
+  //   resizeObserver.observe(fieldRef.current)
 
-    return () => {
-      resizeObserver.disconnect()
-    }
-  }, [field.id, isSelected, onResize])
+  //   return () => {
+  //     resizeObserver.disconnect()
+  //   }
+  // }, [field.id, isSelected, onResize])
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!fieldRef.current) return
@@ -151,9 +151,8 @@ export function DraggableField({
   return (
     <div
       ref={fieldRef}
-      className={`absolute cursor-move flex items-center justify-center min-w-[100px] min-h-[40px] z-10 p-2 bg-white/80 rounded-md overflow-hidden ${isSelected ? "border-2 border-primary resize" : "border border-gray-100 resize-none"}`}
-      onClick={onSelect}
-      onMouseDown={handleMouseDown}
+      className={`absolute cursor-move flex items-center justify-center min-w-[100px] min-h-[40px] z-10 py-2 bg-white/80 rounded-md overflow-hidden ${isSelected ? "border-2 border-primary resize" : "border border-gray-400 resize-none"}`}
+      onClick={handleMouseDown}
     >
       {renderFieldContent()}
 
