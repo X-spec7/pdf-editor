@@ -30,6 +30,7 @@ export function DraggableField({
   const fieldRef = useRef<HTMLDivElement>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+  const [size, setSize] = useState({ width: field.width, height: field.height })
 
   // Set initial position and size
   useEffect(() => {
@@ -41,29 +42,10 @@ export function DraggableField({
     }
   }, [field.x, field.y, field.width, field.height])
 
-  // Handle resize observer
-  // useEffect(() => {
-  //   if (!fieldRef.current || !isSelected) return
-
-  //   const resizeObserver = new ResizeObserver((entries) => {
-  //     for (const entry of entries) {
-  //       const { width, height } = entry.contentRect
-  //       onResize(field.id, width, height)
-  //     }
-  //   })
-
-  //   resizeObserver.observe(fieldRef.current)
-
-  //   return () => {
-  //     resizeObserver.disconnect()
-  //   }
-  // }, [field.id, isSelected, onResize])
-
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!fieldRef.current) return
 
     e.stopPropagation()
-    onSelect()
 
     // Don't start dragging if we're clicking on an input
     if ((e.target as HTMLElement).tagName === "INPUT") return
@@ -81,30 +63,44 @@ export function DraggableField({
     (e: MouseEvent) => {
       if (!isDragging || !fieldRef.current) return
 
-      const parentRect = fieldRef.current.parentElement?.getBoundingClientRect()
-      if (!parentRect) return
+      if (isSelected) {
+        const parentRect = fieldRef.current.parentElement?.getBoundingClientRect()
+        if (!parentRect) return
 
-      const fieldRect = fieldRef.current.getBoundingClientRect()
+        let newWidth = e.clientX - fieldRef.current.getBoundingClientRect().left
+        let newHeight = e.clientY - fieldRef.current.getBoundingClientRect().top
 
-      const parentWidth = parentRect.width
-      const parentHeight = parentRect.height
+        newWidth = Math.max(50, Math.min(newWidth, parentRect.width - field.x))
+        newHeight = Math.max(30, Math.min(newHeight, parentRect.height - field.y))
 
-      const fieldWidth = fieldRect.width
-      const fieldHeight = fieldRect.height
+        onResize(field.id, newWidth, newHeight)
+      } else {
+        const parentRect = fieldRef.current.parentElement?.getBoundingClientRect()
+        if (!parentRect) return
 
-      let x = e.clientX - parentRect.left - dragOffset.x
-      let y = e.clientY - parentRect.top - dragOffset.y
+        const fieldRect = fieldRef.current.getBoundingClientRect()
 
-      x = Math.max(0, Math.min(x, parentWidth - fieldWidth))
-      y = Math.max(0, Math.min(y, parentHeight - fieldHeight))
+        const parentWidth = parentRect.width
+        const parentHeight = parentRect.height
 
-      // Update position
-      fieldRef.current.style.left = `${x}px`
-      fieldRef.current.style.top = `${y}px`
+        const fieldWidth = fieldRect.width
+        const fieldHeight = fieldRect.height
 
-      onMove(field.id, x, y)
+        let x = e.clientX - parentRect.left - dragOffset.x
+        let y = e.clientY - parentRect.top - dragOffset.y
+
+        x = Math.max(0, Math.min(x, parentWidth - fieldWidth))
+        y = Math.max(0, Math.min(y, parentHeight - fieldHeight))
+
+        // Update position
+        fieldRef.current.style.left = `${x}px`
+        fieldRef.current.style.top = `${y}px`
+
+        onMove(field.id, x, y)
+      }
+
     },
-    [isDragging, dragOffset, onMove, field.id],
+    [isDragging, isSelected, dragOffset, onMove, field.id, onResize, field.x, field.y],
   )
 
   const handleMouseUp = useCallback(() => {
@@ -161,11 +157,13 @@ export function DraggableField({
   return (
     <div
       ref={fieldRef}
-      className={`absolute cursor-move flex items-center justify-center min-w-[100px] min-h-[40px] z-10 rounded-md overflow-hidden ${isSelected ? "border-2 border-primary resize bg-white/80" : "resize-none"}`}
+      className={`absolute flex items-start justify-center min-w-[100px] min-h-[40px] z-10 rounded-md overflow-hidden border border-dashed border-gray-400
+        ${isSelected ? "resize bg-white/80" : "resize-none"}`}
       onClick={(e) => {
         e.stopPropagation()
       }}
       onMouseDown={handleMouseDown}
+      onMouseUp={onSelect}
     >
       {renderFieldContent()}
 
@@ -179,6 +177,13 @@ export function DraggableField({
         >
           <X className="h-3 w-3 rounded-full bg-gray-400" />
         </button>
+      )}
+
+      {!isSelected && (
+        <div
+          className="absolute w-full h-full cursor-pointer border-dashed border-gray-400 z-20"
+          onMouseUp={onSelect}
+        />
       )}
     </div>
   )

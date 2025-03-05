@@ -67,8 +67,6 @@ export function PDFEditor() {
   const handleFileDownload = async () => {
     if (!editedFile || !originalPdfDoc) return
 
-    console.log('fields when downloading: ', fields)
-
     try {
       // Create a copy of the original PDF document
       const pdfDoc = await PDFDocument.load(await editedFile.arrayBuffer())
@@ -86,7 +84,7 @@ export function PDFEditor() {
         // Calculate the position in PDF coordinates (bottom-left origin)
         // Assuming the field coordinates are relative to the top-left of the page
         const pdfX = field.x * scaleFactor
-        const pdfY = height - field.y * scaleFactor - font.heightAtSize(12) - 4
+        const pdfY = height - field.y * scaleFactor - font.heightAtSize(10) - 4
 
         switch (field.type) {
           case "text":
@@ -95,7 +93,7 @@ export function PDFEditor() {
               x: pdfX,
               y: pdfY,
               font: font,
-              size: 12,
+              size: 10,
               color: rgb(0, 0, 0),
             })
             break

@@ -101,7 +101,7 @@ export default function PDFViewer({
     onFieldsChange(updatedFields)
 
     // Select the new field
-    onSelectField(newField.id)
+    onSelectField(null)
   }
 
   const handleFieldMove = (id: string, x: number, y: number) => {
