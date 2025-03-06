@@ -1,12 +1,13 @@
 "use client"
 
 import type React from "react"
-
-import { useRef, useState, useEffect, useCallback } from "react"
 import { X } from "lucide-react"
+import { format } from "date-fns"
+import { useRef, useState, useEffect, useCallback } from "react"
+
 import { Input } from "@/components/ui/input"
 import type { PDFField } from "@/lib/types"
-import { format } from "date-fns"
+import { SignatureModal } from "./signature-modal"
 
 interface DraggableFieldProps {
   field: PDFField
@@ -31,6 +32,7 @@ export function DraggableField({
   const [isDragging, setIsDragging] = useState(false)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
   const [size, setSize] = useState({ width: field.width, height: field.height })
+  const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false)
 
   // Set initial position and size
   useEffect(() => {
@@ -98,7 +100,6 @@ export function DraggableField({
 
         onMove(field.id, x, y)
       }
-
     },
     [isDragging, isSelected, dragOffset, onMove, field.id, onResize, field.x, field.y],
   )
@@ -123,6 +124,16 @@ export function DraggableField({
     }
   }, [isDragging, handleMouseMove, handleMouseUp])
 
+  const handleFieldClick = () => {
+    if (field.type === "signature") {
+      setIsSignatureModalOpen(true)
+    }
+  }
+
+  const handleSignatureSave = (value: string) => {
+    onValueChange(field.id, value)
+  }
+
   const renderFieldContent = () => {
     switch (field.type) {
       case "text":
@@ -136,8 +147,23 @@ export function DraggableField({
         )
       case "signature":
         return (
-          <div className="w-full h-full flex items-center justify-center border border-dashed border-primary/50 text-sm text-muted-foreground">
-            {field.value ? field.value : "Signature"}
+          <div
+            className="w-full h-full flex items-center justify-center border border-dashed border-primary/50 text-sm text-muted-foreground cursor-pointer"
+            onClick={handleFieldClick}
+          >
+            {field.value ? (
+              field.value.startsWith("data:image") ? (
+                <img
+                  src={field.value || "/placeholder.svg"}
+                  alt="Signature"
+                  className="max-h-full max-w-full object-contain"
+                />
+              ) : (
+                <span className="font-handwriting text-lg">{field.value}</span>
+              )
+            ) : (
+              "Click to add signature"
+            )}
           </div>
         )
       case "date":
@@ -155,36 +181,46 @@ export function DraggableField({
   }
 
   return (
-    <div
-      ref={fieldRef}
-      className={`absolute flex items-start justify-center min-w-[100px] min-h-[40px] z-10 rounded-md overflow-hidden border border-dashed border-gray-400
-        ${isSelected ? "resize bg-white/80" : "resize-none"}`}
-      onClick={(e) => {
-        e.stopPropagation()
-      }}
-      onMouseDown={handleMouseDown}
-      onMouseUp={onSelect}
-    >
-      {renderFieldContent()}
+    <>
+      <div
+        ref={fieldRef}
+        className={`absolute flex items-start justify-center min-w-[100px] min-h-[40px] z-10 rounded-md overflow-hidden border border-dashed border-gray-400
+          ${isSelected ? "resize bg-white/80" : "resize-none"}`}
+        onClick={(e) => {
+          e.stopPropagation()
+        }}
+        onMouseDown={handleMouseDown}
+        onMouseUp={onSelect}
+      >
+        {renderFieldContent()}
 
-      {isSelected && (
-        <button
-          className="absolute top-0 right-0 text-destructive-foreground rounded-bl-md p-1"
-          onClick={(e) => {
-            e.stopPropagation()
-            onDelete(field.id)
-          }}
-        >
-          <X className="h-3 w-3 rounded-full bg-gray-400" />
-        </button>
-      )}
+        {isSelected && (
+          <button
+            className="absolute top-0 right-0 text-destructive-foreground rounded-bl-md p-1"
+            onClick={(e) => {
+              e.stopPropagation()
+              onDelete(field.id)
+            }}
+          >
+            <X className="h-3 w-3 rounded-full bg-gray-400" />
+          </button>
+        )}
 
-      {!isSelected && (
-        <div
-          className="absolute w-full h-full cursor-pointer border-dashed border-gray-400 z-20"
-          onMouseUp={onSelect}
-        />
-      )}
-    </div>
+        {!isSelected && (
+          <div
+            className="absolute w-full h-full cursor-pointer border-dashed border-gray-400 z-20"
+            onMouseUp={onSelect}
+          />
+        )}
+      </div>
+
+      <SignatureModal
+        isOpen={isSignatureModalOpen}
+        onClose={() => setIsSignatureModalOpen(false)}
+        onSave={handleSignatureSave}
+        initialValue={field.value}
+      />
+    </>
   )
 }
+

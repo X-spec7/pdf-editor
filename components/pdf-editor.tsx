@@ -1,5 +1,7 @@
 "use client"
 
+// Update the PDF editor to properly handle signatures in the PDF download
+
 import { useCallback, useState } from "react"
 import { Menu } from "lucide-react"
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib"
@@ -76,7 +78,7 @@ export function PDFEditor() {
         const page = pdfDoc.getPage(field.page - 1)
         const { width, height } = page.getSize()
 
-        const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+        const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
 
         const renderedPDFWidth = 1000
         const scaleFactor = width / renderedPDFWidth
@@ -99,23 +101,54 @@ export function PDFEditor() {
             break
 
           case "signature":
-            // For signature, draw a placeholder or the actual signature
-            page.drawRectangle({
-              x: pdfX,
-              y: pdfY,
-              width: field.width,
-              height: field.height,
-              borderColor: rgb(0, 0, 0),
-              borderWidth: 1,
-              opacity: 0.5,
-            })
-
             if (field.value) {
-              page.drawText(field.value, {
-                x: pdfX + 10,
-                y: pdfY + field.height / 2 - 6,
-                size: 12,
-                color: rgb(0, 0, 0),
+              if (field.value.startsWith("data:image")) {
+                // It's a drawn signature (image)
+                try {
+                  // Convert data URL to bytes
+                  const signatureBytes = await fetch(field.value).then((res) => res.arrayBuffer())
+                  // Embed the image in the PDF
+                  const signatureImage = await pdfDoc.embedPng(signatureBytes)
+
+                  // Calculate dimensions while maintaining aspect ratio
+                  const signatureDims = signatureImage.scale((field.width * scaleFactor) / signatureImage.width)
+
+                  // Draw the signature image
+                  page.drawImage(signatureImage, {
+                    x: pdfX,
+                    y: pdfY - signatureDims.height + font.heightAtSize(10),
+                    width: signatureDims.width,
+                    height: signatureDims.height,
+                  })
+                } catch (error) {
+                  console.error("Error embedding signature image:", error)
+                  // Fallback to text if image embedding fails
+                  page.drawText("Signature", {
+                    x: pdfX + 10,
+                    y: pdfY + field.height / 2 - 6,
+                    size: 12,
+                    color: rgb(0, 0, 0),
+                  })
+                }
+              } else {
+                // It's a typed signature (text)
+                page.drawText(field.value, {
+                  x: pdfX + 10,
+                  y: pdfY + field.height / 2 - 6,
+                  size: 12,
+                  color: rgb(0, 0, 0),
+                })
+              }
+            } else {
+              // Draw an empty signature box
+              page.drawRectangle({
+                x: pdfX,
+                y: pdfY,
+                width: field.width * scaleFactor,
+                height: field.height * scaleFactor,
+                borderColor: rgb(0, 0, 0),
+                borderWidth: 1,
+                opacity: 0.5,
               })
             }
             break
