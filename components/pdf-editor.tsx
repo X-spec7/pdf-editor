@@ -1,6 +1,6 @@
 "use client"
 
-// Update the PDF editor to properly handle signatures in the PDF download
+// Update the PDF editor to properly handle signatures with transparency in the PDF download
 
 import { useCallback, useState } from "react"
 import { Menu } from "lucide-react"
@@ -107,7 +107,7 @@ export function PDFEditor() {
                 try {
                   // Convert data URL to bytes
                   const signatureBytes = await fetch(field.value).then((res) => res.arrayBuffer())
-                  // Embed the image in the PDF
+                  // Embed the image in the PDF with transparency preserved
                   const signatureImage = await pdfDoc.embedPng(signatureBytes)
 
                   // Calculate dimensions while maintaining aspect ratio
@@ -235,3 +235,4 @@ export function PDFEditor() {
     </div>
   )
 }
+

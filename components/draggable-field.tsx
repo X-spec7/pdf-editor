@@ -1,13 +1,14 @@
 "use client"
 
 import type React from "react"
-import { X } from "lucide-react"
-import { format } from "date-fns"
-import { useRef, useState, useEffect, useCallback } from "react"
 
+import { useRef, useState, useEffect, useCallback } from "react"
+import { X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import type { PDFField } from "@/lib/types"
+import { format } from "date-fns"
 import { SignatureModal } from "./signature-modal"
+import Image from "next/image"
 
 interface DraggableFieldProps {
   field: PDFField
@@ -148,16 +149,22 @@ export function DraggableField({
       case "signature":
         return (
           <div
-            className="w-full h-full flex items-center justify-center border border-dashed border-primary/50 text-sm text-muted-foreground cursor-pointer"
+            className="w-full h-full flex items-center justify-center border border-dashed border-primary/50 text-sm text-muted-foreground cursor-pointer bg-transparent"
             onClick={handleFieldClick}
           >
             {field.value ? (
               field.value.startsWith("data:image") ? (
-                <img
-                  src={field.value || "/placeholder.svg"}
-                  alt="Signature"
-                  className="max-h-full max-w-full object-contain"
-                />
+                <div className="relative w-full h-full">
+                  <Image
+                    src={field.value || "/placeholder.svg"}
+                    alt="Signature"
+                    width={field.width}
+                    height={field.height}
+                    className="max-h-full max-w-full object-contain"
+                    unoptimized // Required for data URLs
+                    style={{ backgroundColor: "transparent" }}
+                  />
+                </div>
               ) : (
                 <span className="font-handwriting text-lg">{field.value}</span>
               )

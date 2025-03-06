@@ -70,7 +70,8 @@ export function SignatureModal({ isOpen, onClose, onSave, initialValue }: Signat
       onSave(inputValue)
     } else {
       if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
-        const dataURL = sigCanvas.current.toDataURL("image/png")
+        // Get the signature with transparent background
+        const dataURL = sigCanvas.current.toDataURL("image/png", { backgroundColor: "transparent" })
         onSave(dataURL)
       } else {
         onSave("")
@@ -131,18 +132,23 @@ export function SignatureModal({ isOpen, onClose, onSave, initialValue }: Signat
                 </div>
               </div>
 
-              <div className="border rounded-md bg-white">
+              <div className="border rounded-md bg-transparent">
                 <SignatureCanvas
                   ref={sigCanvas}
                   canvasProps={{
                     className: "w-full h-[150px] cursor-crosshair",
-                    style: { width: "100%", height: "150px" },
+                    style: {
+                      width: "100%",
+                      height: "150px",
+                      backgroundColor: "transparent",
+                    },
                   }}
-                  backgroundColor="white"
+                  backgroundColor="transparent"
                   penColor="black"
                   onBegin={() => setHasSignature(true)}
                 />
               </div>
+              <p className="text-xs text-muted-foreground">Signature will have a transparent background</p>
             </div>
           </TabsContent>
         </Tabs>
