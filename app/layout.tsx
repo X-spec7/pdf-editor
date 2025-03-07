@@ -1,26 +1,29 @@
-import './globals.css';
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import { Toaster } from "@/components/ui/toaster";
+import type React from "react"
+import type { Metadata } from "next"
+import { Inter } from "next/font/google"
+import "./globals.css"
+import { bastliga, centralwell } from "./fonts"
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: 'PDF Signing App',
-  description: 'Upload, view, and sign PDF documents',
-};
+  title: "PDF Editor",
+  description: "Edit and sign PDF documents",
+}
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body
+        className={`${inter.className} ${bastliga.variable} ${centralwell.variable}`}
+      >
         {children}
-        <Toaster />
       </body>
     </html>
-  );
+  )
 }
+
