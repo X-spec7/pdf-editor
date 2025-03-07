@@ -20,6 +20,8 @@ interface PDFViewerProps {
   editedFile: Blob | null
   fields: PDFField[]
   selectedFieldId: string | null
+  scale: number
+  setScale: React.Dispatch<React.SetStateAction<number>>
   onFieldsChange: (fields: PDFField[]) => void
   onSelectField: (id: string | null) => void
   onFileDownload: () => void
@@ -34,10 +36,11 @@ export default function PDFViewer({
   onSelectField,
   onFileDownload,
   onFileDelete,
+  scale,
+  setScale
 }: PDFViewerProps) {
   const [currentPage, setCurrentPage] = useState<number>(1)
   const [totalPages, setTotalPages] = useState<number>(0)
-  const [scale, setScale] = useState<number>(1.0)
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)

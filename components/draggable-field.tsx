@@ -62,7 +62,7 @@ export function DraggableField({
             value={field.value}
             onChange={(e) => onValueChange(field.id, e.target.value)}
             placeholder="Text field"
-            className="w-full h-full border-none focus:border-none focus:ring-0 focus-visible:ring-0 bg-transparent text-xs"
+            className="w-full h-full border-none focus:border-none focus:ring-0 focus-visible:ring-0 bg-transparent text-[12px]"
             onClick={(e) => {
               e.stopPropagation()
             }}
@@ -89,7 +89,7 @@ export function DraggableField({
                   />
                 </div>
               ) : (
-                <span style={{ fontFamily: field.fontFamily }} className="text-lg">
+                <span style={{ fontFamily: field.fontFamily }} className="text-[18px]">
                   {field.value}
                 </span>
               )
@@ -104,7 +104,7 @@ export function DraggableField({
             value={field.value ? format(new Date(field.value), "yyyy-MM-dd") : ""}
             onChange={(e) => onValueChange(field.id, e.target.value)}
             type="date"
-            className="w-full h-full border-none focus:border-none focus:ring-0 focus-visible:ring-0 bg-transparent text-xs"
+            className="w-full h-full border-none focus:border-none focus:ring-0 focus-visible:ring-0 bg-transparent text-[12px]"
             onClick={(e) => {
               e.stopPropagation()
             }}

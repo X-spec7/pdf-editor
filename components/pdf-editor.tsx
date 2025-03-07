@@ -19,6 +19,7 @@ export function PDFEditor() {
   const [originalPdfDoc, setOriginalPdfDoc] = useState<PDFDocument | null>(null)
   const [fields, setFields] = useState<PDFField[]>([])
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null)
+  const [scale, setScale] = useState<number>(1.0)
 
   const { toast } = useToast()
 
@@ -243,6 +244,8 @@ export function PDFEditor() {
             fields={fields}
             selectedFieldId={selectedFieldId}
             editedFile={editedFile}
+            scale={scale}
+            setScale={setScale}
             onFieldsChange={setFields}
             onSelectField={setSelectedFieldId}
             onFileDownload={handleFileDownload}
