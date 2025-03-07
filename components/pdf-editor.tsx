@@ -107,7 +107,7 @@ export function PDFEditor() {
         // Calculate the position in PDF coordinates (bottom-left origin)
         // Assuming the field coordinates are relative to the top-left of the page
         const pdfX = field.x * scaleFactor
-        const pdfY = height - field.y * scaleFactor - helveticaFont.heightAtSize(10) - 4
+        const pdfY = height - field.y * scaleFactor - field.height / 2 + helveticaFont.heightAtSize(12) / 2
 
         switch (field.type) {
           case "text":
@@ -144,12 +144,6 @@ export function PDFEditor() {
                 } catch (error) {
                   console.error("Error embedding signature image:", error)
                   // Fallback to text if image embedding fails
-                  page.drawText("Signature", {
-                    x: pdfX + 10,
-                    y: pdfY + field.height / 2 - 6,
-                    size: 12,
-                    color: rgb(0, 0, 0),
-                  })
                 }
               } else {
                 // It's a typed signature (text)
@@ -165,7 +159,7 @@ export function PDFEditor() {
 
                 page.drawText(field.value, {
                   x: pdfX,
-                  y: pdfY - field.height / 2 + helveticaFont.heightAtSize(10) + font.heightAtSize(18) / 2,
+                  y: pdfY - helveticaFont.heightAtSize(12) / 2 + font.heightAtSize(18) / 2,
                   size: 18,
                   font: font,
                   color: rgb(0, 0, 0),
@@ -173,15 +167,6 @@ export function PDFEditor() {
               }
             } else {
               // Draw an empty signature box
-              // page.drawRectangle({
-              //   x: pdfX,
-              //   y: pdfY,
-              //   width: field.width * scaleFactor,
-              //   height: field.height * scaleFactor,
-              //   borderColor: rgb(0, 0, 0),
-              //   borderWidth: 1,
-              //   opacity: 0.5,
-              // })
             }
             break
 
