@@ -102,13 +102,15 @@ export function PDFEditor() {
         const page = pdfDoc.getPage(field.page - 1)
         const { width, height } = page.getSize()
 
-        const renderedPDFWidth = 1000
+        const renderedPDFWidth = 1000 * scale
         const scaleFactor = width / renderedPDFWidth
+
+        const pxToPt = 0.75
 
         // Calculate the position in PDF coordinates (bottom-left origin)
         // Assuming the field coordinates are relative to the top-left of the page
         const pdfX = field.x * scaleFactor
-        const pdfY = height - field.y * scaleFactor - field.height / 2 + helveticaFont.heightAtSize(12) / 2
+        const pdfY = height - field.y * scaleFactor - field.height / 2 + helveticaFont.heightAtSize(12, {descender: true}) / 2 * scale
 
         switch (field.type) {
           case "text":
@@ -117,7 +119,7 @@ export function PDFEditor() {
               x: pdfX,
               y: pdfY,
               font: helveticaFont,
-              size: 10,
+              size: 12 * pxToPt,
               color: rgb(0, 0, 0),
             })
             break
@@ -138,7 +140,7 @@ export function PDFEditor() {
                   // Draw the signature image
                   page.drawImage(signatureImage, {
                     x: pdfX,
-                    y: pdfY - signatureDims.height + helveticaFont.heightAtSize(10) + 4,
+                    y: pdfY - signatureDims.height + helveticaFont.heightAtSize(12, {descender: true}) * scale + 4,
                     width: signatureDims.width,
                     height: signatureDims.height,
                   })
@@ -160,8 +162,8 @@ export function PDFEditor() {
 
                 page.drawText(field.value, {
                   x: pdfX,
-                  y: pdfY - helveticaFont.heightAtSize(12) / 2 + font.heightAtSize(18) / 2,
-                  size: 18,
+                  y: pdfY - helveticaFont.heightAtSize(12, {descender: true}) * scale / 2 + font.heightAtSize(18, {descender: true}) * scale / 2,
+                  size: 18 * pxToPt,
                   font: font,
                   color: rgb(0, 0, 0),
                 })
@@ -178,7 +180,7 @@ export function PDFEditor() {
             page.drawText(dateValue, {
               x: pdfX,
               y: pdfY,
-              size: 12,
+              size: 12 * pxToPt,
               font: helveticaFont,
               color: rgb(0, 0, 0),
             })
