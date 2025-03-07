@@ -2,20 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer utilities {
-  /* Chrome, Safari and Opera */
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    /* IE and Edge */
-    scrollbar-width: none;
-    /* Firefox */
-  }
-}
-
 :root {
   --background: 0 0% 100%;
   --foreground: 240 10% 3.9%;
@@ -86,6 +72,35 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+
+  /* Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+  }
+}
+
+@layer components {
+  .draggable-field {
+    @apply p-3 bg-card border rounded-md cursor-grab mb-2 hover:bg-accent transition-colors;
+  }
+
+  .font-handwriting {
+    font-family: "Caveat", cursive, sans-serif;
+  }
+
+  .resize-handle {
+    @apply opacity-0;
   }
 }
 
