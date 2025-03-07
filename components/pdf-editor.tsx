@@ -1,10 +1,10 @@
 "use client"
 
-// Update the PDF editor to properly handle signatures with transparency in the PDF download
-
 import { useCallback, useState } from "react"
 import { Menu } from "lucide-react"
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib"
+import fontkit from "@pdf-lib/fontkit"
+import type { PDFFont } from "pdf-lib"
 
 import type { FieldType, PDFField } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast"
@@ -73,12 +73,33 @@ export function PDFEditor() {
       // Create a copy of the original PDF document
       const pdfDoc = await PDFDocument.load(await editedFile.arrayBuffer())
 
+      // Register fontkit with the PDF document
+      pdfDoc.registerFontkit(fontkit)
+
+      // Load custom fonts
+      const bastligaFontBytes = await fetch("/fonts/bastliga.otf").then((res) => res.arrayBuffer())
+      const centralwellFontBytes = await fetch("/fonts/centralwell.ttf").then((res) => res.arrayBuffer())
+
+      // Embed custom fonts
+      const bastligaFont = await pdfDoc.embedFont(bastligaFontBytes)
+      const centralwellFont = await pdfDoc.embedFont(centralwellFontBytes)
+
+      // Default font
+      const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica)
+
+      // Define a type for the font map keys
+      type FontMapKey = "var(--font-bastliga)" | "var(--font-centralwell)"
+
+      // Map of font family variables to embedded fonts with proper typing
+      const fontMap: Record<FontMapKey, PDFFont> = {
+        "var(--font-bastliga)": bastligaFont,
+        "var(--font-centralwell)": centralwellFont,
+      }
+
       // Process each field and add it to the PDF
       for (const field of fields) {
         const page = pdfDoc.getPage(field.page - 1)
         const { width, height } = page.getSize()
-
-        const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
 
         const renderedPDFWidth = 1000
         const scaleFactor = width / renderedPDFWidth
@@ -86,7 +107,7 @@ export function PDFEditor() {
         // Calculate the position in PDF coordinates (bottom-left origin)
         // Assuming the field coordinates are relative to the top-left of the page
         const pdfX = field.x * scaleFactor
-        const pdfY = height - field.y * scaleFactor - font.heightAtSize(10) - 4
+        const pdfY = height - field.y * scaleFactor - helveticaFont.heightAtSize(10) - 4
 
         switch (field.type) {
           case "text":
@@ -94,7 +115,7 @@ export function PDFEditor() {
             page.drawText(field.value || "", {
               x: pdfX,
               y: pdfY,
-              font: font,
+              font: helveticaFont,
               size: 10,
               color: rgb(0, 0, 0),
             })
@@ -116,7 +137,7 @@ export function PDFEditor() {
                   // Draw the signature image
                   page.drawImage(signatureImage, {
                     x: pdfX,
-                    y: pdfY - signatureDims.height + font.heightAtSize(10),
+                    y: pdfY - signatureDims.height + helveticaFont.heightAtSize(10) + 4,
                     width: signatureDims.width,
                     height: signatureDims.height,
                   })
@@ -132,24 +153,35 @@ export function PDFEditor() {
                 }
               } else {
                 // It's a typed signature (text)
+                // Select the appropriate font based on fontFamily
+                let font = bastligaFont // Default to Bastliga if no font specified
+
+                if (
+                  field.fontFamily &&
+                  (field.fontFamily === "var(--font-bastliga)" || field.fontFamily === "var(--font-centralwell)")
+                ) {
+                  font = fontMap[field.fontFamily as FontMapKey]
+                }
+
                 page.drawText(field.value, {
-                  x: pdfX + 10,
-                  y: pdfY + field.height / 2 - 6,
-                  size: 12,
+                  x: pdfX,
+                  y: pdfY - field.height / 2 + helveticaFont.heightAtSize(10) + font.heightAtSize(18) / 2,
+                  size: 18,
+                  font: font,
                   color: rgb(0, 0, 0),
                 })
               }
             } else {
               // Draw an empty signature box
-              page.drawRectangle({
-                x: pdfX,
-                y: pdfY,
-                width: field.width * scaleFactor,
-                height: field.height * scaleFactor,
-                borderColor: rgb(0, 0, 0),
-                borderWidth: 1,
-                opacity: 0.5,
-              })
+              // page.drawRectangle({
+              //   x: pdfX,
+              //   y: pdfY,
+              //   width: field.width * scaleFactor,
+              //   height: field.height * scaleFactor,
+              //   borderColor: rgb(0, 0, 0),
+              //   borderWidth: 1,
+              //   opacity: 0.5,
+              // })
             }
             break
 
@@ -161,6 +193,7 @@ export function PDFEditor() {
               x: pdfX,
               y: pdfY,
               size: 12,
+              font: helveticaFont,
               color: rgb(0, 0, 0),
             })
             break

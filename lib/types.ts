@@ -9,4 +9,6 @@ export interface PDFField {
   height: number
   value: string
   page: number
+  fontFamily?: string
 }
+

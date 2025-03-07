@@ -94,6 +94,7 @@ export default function PDFViewer({
       height: fieldType === "signature" ? 80 : 40,
       value: fieldType === "date" ? new Date().toISOString() : "",
       page: currentPage,
+      fontFamily: fieldType === "signature" ? "var(--font-bastliga)" : undefined,
     }
 
     // Add the new field to the fields array
@@ -120,8 +121,10 @@ export default function PDFViewer({
     onSelectField(null)
   }
 
-  const handleFieldValueChange = (id: string, value: string) => {
-    const updatedFields = fields.map((field) => (field.id === id ? { ...field, value } : field))
+  const handleFieldValueChange = (id: string, value: string, fontFamily?: string) => {
+    const updatedFields = fields.map((field) =>
+      field.id === id ? { ...field, value, fontFamily: fontFamily || field.fontFamily } : field,
+    )
     onFieldsChange(updatedFields)
   }
 
@@ -225,3 +228,4 @@ export default function PDFViewer({
     </div>
   )
 }
+

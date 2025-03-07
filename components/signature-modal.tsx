@@ -8,19 +8,23 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Eraser, Undo } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { handwritingFonts } from "@/app/fonts"
 
 interface SignatureModalProps {
   isOpen: boolean
   onClose: () => void
-  onSave: (value: string) => void
+  onSave: (value: string, fontFamily?: string) => void
   initialValue?: string
+  initialFont?: string
 }
 
-export function SignatureModal({ isOpen, onClose, onSave, initialValue }: SignatureModalProps) {
+export function SignatureModal({ isOpen, onClose, onSave, initialValue, initialFont }: SignatureModalProps) {
   const [activeTab, setActiveTab] = useState<string>("input")
   const [inputValue, setInputValue] = useState(
     initialValue && !initialValue.startsWith("data:image") ? initialValue : "",
   )
+  const [selectedFont, setSelectedFont] = useState(initialFont || handwritingFonts[0].fontFamily)
 
   const sigCanvas = useRef<SignatureCanvas>(null)
   const [hasSignature, setHasSignature] = useState(false)
@@ -67,7 +71,7 @@ export function SignatureModal({ isOpen, onClose, onSave, initialValue }: Signat
   // Handle save button click
   const handleSave = () => {
     if (activeTab === "input") {
-      onSave(inputValue)
+      onSave(inputValue, selectedFont)
     } else {
       if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
         // Get the signature with transparent background
@@ -98,19 +102,38 @@ export function SignatureModal({ isOpen, onClose, onSave, initialValue }: Signat
           <TabsContent value="input" className="mt-4">
             <div className="space-y-4">
               <div className="space-y-2">
+                <Label htmlFor="signature-font">Select Font Style</Label>
+                <Select value={selectedFont} onValueChange={setSelectedFont}>
+                  <SelectTrigger id="signature-font">
+                    <SelectValue placeholder="Select a font" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {handwritingFonts.map((font) => (
+                      <SelectItem key={font.variable} value={font.fontFamily} style={{ fontFamily: font.fontFamily }}>
+                        {font.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="signature-input">Type your signature</Label>
                 <Input
                   id="signature-input"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   placeholder="Your signature"
-                  className="font-handwriting text-lg"
+                  style={{ fontFamily: selectedFont }}
+                  className="text-lg"
                 />
               </div>
 
               <div className="border rounded-md p-4 min-h-[100px] flex items-center justify-center">
                 {inputValue ? (
-                  <p className="font-handwriting text-xl">{inputValue}</p>
+                  <p className="text-xl" style={{ fontFamily: selectedFont }}>
+                    {inputValue}
+                  </p>
                 ) : (
                   <p className="text-muted-foreground text-sm">Your signature will appear here</p>
                 )}
