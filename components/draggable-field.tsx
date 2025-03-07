@@ -1,13 +1,14 @@
   "use client"
 
-  import React, { useState, useEffect, useRef } from "react"
   import { X } from "lucide-react"
-  import { Input } from "@/components/ui/input"
-  import type { PDFField } from "@/lib/types"
   import { format } from "date-fns"
-  import { SignatureModal } from "./signature-modal"
   import Image from "next/image"
   import { Rnd } from "react-rnd"
+  import React, { useState, useEffect, useRef } from "react"
+
+  import { Input } from "@/components/ui/input"
+  import type { PDFField } from "@/lib/types"
+  import { SignatureModal } from "./signature-modal"
 
   interface DraggableFieldProps {
     field: PDFField
@@ -43,8 +44,6 @@
     const handleFieldClick = (e: React.MouseEvent<HTMLDivElement>) => {
       e.stopPropagation()
 
-      console.log('is selected: ', isSelected)
-
       if (field.type === "signature" && isSelected) {
         setIsSignatureModalOpen(true)
       }
@@ -52,11 +51,6 @@
 
     const handleSignatureSave = (value: string) => {
       onValueChange(field.id, value)
-    }
-
-    const onMouseDown = () => {
-      console.log('is selected: ', isSelected)
-      onSelect()
     }
 
     const renderFieldContent = () => {
@@ -127,12 +121,13 @@
           }}
           onResizeStop={(e, direction, ref, delta, position) => {
             if (!fieldContainerRef.current) return
-            const newWidth = Number.parseInt(fieldContainerRef.current.style.width)
-            const newHeight = Number.parseInt(fieldContainerRef.current.style.height)
+
+            const newWidth = Number.parseInt(ref.style.width)
+            const newHeight = Number.parseInt(ref.style.height)
+
             setSize({ width: newWidth, height: newHeight })
             setPosition(position)
             onResize(field.id, newWidth, newHeight)
-            onMove(field.id, position.x, position.y)
           }}
           className={`relative flex items-start justify-center min-w-[100px] min-h-[40px] z-10 rounded-md overflow-visible border border-dashed border-gray-400
             ${isSelected ? "bg-white/80" : ""}`}
@@ -143,7 +138,7 @@
             width: size.width,
             height: size.height,
           }}
-          disableDragging={false}
+          disableDragging={isSelected}
         >
           <div className="relative w-full h-full" ref={fieldContainerRef}>
             {renderFieldContent()}
