@@ -1,0 +1,161 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 221.2 83% 53.9%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83% 53.9%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* PDF Editor Custom Styles */
+@layer components {
+  .field-item {
+    @apply p-3 rounded-md border border-border bg-card hover:border-primary/40 hover:bg-accent transition-all duration-150 cursor-grab active:cursor-grabbing select-none;
+  }
+
+  .field-item-icon {
+    @apply size-6 text-muted-foreground mb-1;
+  }
+
+  .field-item-dragging {
+    @apply opacity-50 shadow-md;
+  }
+
+  .field-drag-preview {
+    @apply bg-white rounded shadow-sm p-2 flex items-center justify-between;
+    width: 120px;
+    pointer-events: none;
+    position: absolute;
+    z-index: 9999;
+  }
+
+  .document-canvas {
+    @apply bg-muted rounded-lg shadow-sm overflow-hidden transition-all ease-in-out duration-300;
+  }
+
+  .document-page {
+    @apply bg-white rounded shadow-sm mx-auto my-8 relative overflow-hidden transition-all;
+  }
+
+  .document-field {
+    @apply absolute border-2 border-dashed rounded-sm p-2 flex items-center justify-center transition-all transform;
+  }
+
+  .field-selected {
+    @apply border-primary bg-editor-field-selected z-10;
+  }
+
+  .field-hover {
+    @apply border-primary/60 bg-editor-field-hover;
+  }
+
+  .field-resize-handle {
+    @apply absolute size-3 bg-primary rounded-full border border-white shadow-sm z-20;
+  }
+
+  /* Sidebar animations */
+  .sidebar-enter {
+    @apply translate-x-full;
+  }
+  
+  .sidebar-enter-active {
+    @apply translate-x-0 transition-transform duration-300 ease-out;
+  }
+  
+  .sidebar-exit {
+    @apply translate-x-0;
+  }
+  
+  .sidebar-exit-active {
+    @apply translate-x-full transition-transform duration-300 ease-in;
+  }
+}
