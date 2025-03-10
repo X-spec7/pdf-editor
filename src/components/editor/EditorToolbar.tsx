@@ -1,27 +1,29 @@
-import React from "react";
-import { Button } from "@/components/ui/button";
-import { useEditorStore } from "@/store/useEditorStore";
-import { ChevronDown, Plus, Minus, Edit } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
-import { ExportPdfButton } from "./ExportPdfButton";
+import type React from "react"
+
+import { Button } from "@/components/ui/button"
+import { useEditorStore } from "@/store/useEditorStore"
+import { ChevronDown, Plus, Minus, Edit } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { ExportPdfButton } from "./ExportPdfButton"
+
+// Import the useUserStore
+import { useUserStore } from "@/store/useUserStore"
 
 export const EditorToolbar: React.FC = () => {
-  const scale = useEditorStore((state) => state.scale);
-  const setScale = useEditorStore((state) => state.setScale);
+  const scale = useEditorStore((state) => state.scale)
+  const setScale = useEditorStore((state) => state.setScale)
+
+  // Inside the EditorToolbar component, add this after the existing state declarations
+  const userType = useUserStore((state) => state.userType)
+  const toggleUserType = useUserStore((state) => state.toggleUserType)
 
   const handleZoomIn = () => {
-    setScale(Math.min(2, scale + 0.1));
-  };
+    setScale(Math.min(2, scale + 0.1))
+  }
 
   const handleZoomOut = () => {
-    setScale(Math.max(0.5, scale - 0.1));
-  };
+    setScale(Math.max(0.5, scale - 0.1))
+  }
 
   return (
     <div className="flex h-14 items-center justify-between border-b bg-gray-50 px-4">
@@ -44,31 +46,24 @@ export const EditorToolbar: React.FC = () => {
         <ExportPdfButton />
       </div>
 
+      <div className="flex items-center space-x-3">
+        <Button variant="outline" size="sm" className="h-9 gap-1" onClick={toggleUserType}>
+          <span className="text-sm">Mode: {userType === "creator" ? "Creator" : "Signer"}</span>
+        </Button>
+      </div>
+
       <div className="flex items-center space-x-1">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={handleZoomOut}
-          disabled={scale <= 0.5}
-        >
+        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleZoomOut} disabled={scale <= 0.5}>
           <Minus className="h-4 w-4" />
         </Button>
 
-        <div className="w-16 text-center text-sm">
-          {Math.round(scale * 100)}%
-        </div>
+        <div className="w-16 text-center text-sm">{Math.round(scale * 100)}%</div>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={handleZoomIn}
-          disabled={scale >= 2}
-        >
+        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleZoomIn} disabled={scale >= 2}>
           <Plus className="h-4 w-4" />
         </Button>
       </div>
     </div>
-  );
-};
+  )
+}
+
