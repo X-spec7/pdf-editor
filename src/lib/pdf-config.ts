@@ -1,10 +1,7 @@
-import * as pdfjs from "pdfjs-dist";
+// import * as pdfjs from "pdfjs-dist";
+import { pdfjs } from "react-pdf";
 
-// Import the worker directly - Vite will handle this correctly
-import pdfWorker from "pdfjs-dist/build/pdf.worker.mjs?url";
-
-// Set the worker source
-pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
+pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString()
 
 // Export the configured pdfjs
 export { pdfjs };
