@@ -110,6 +110,8 @@ export async function exportPdfWithFields(pdfBlob: Blob, filename: string, field
       // Get page dimensions
       const { width, height } = page.getSize()
 
+      const scaleFactor = width / 1000
+
       // Convert coordinates (PDF coordinate system has origin at bottom-left)
       const x = field.position.x
       const y =
@@ -151,11 +153,11 @@ export async function exportPdfWithFields(pdfBlob: Blob, filename: string, field
               try {
                 const signatureBytes = await fetch(field.value).then((res) => res.arrayBuffer())
                 const signatureImage = await pdfDoc.embedPng(signatureBytes)
-                const signatureDims = signatureImage.scale(field.size.width / signatureImage.width)
+                const signatureDims = signatureImage.scale(field.size.width * scaleFactor / signatureImage.width)
 
                 page.drawImage(signatureImage, {
                   x,
-                  y: y - signatureDims.height + helveticaFont.heightAtSize(12, { descender: true }) + 4,
+                  y: y - signatureDims.height + field.size.height / 2 + helveticaFont.heightAtSize(12, { descender: true }),
                   width: signatureDims.width,
                   height: signatureDims.height,
                 })
@@ -169,7 +171,6 @@ export async function exportPdfWithFields(pdfBlob: Blob, filename: string, field
 
               // Try to load custom font if specified
               if (field.fontFamily) {
-                console.log('font family: ', field.fontFamily)
                 const fontPath = getFontPath(field.fontFamily)
                 if (fontPath) {
                   try {
