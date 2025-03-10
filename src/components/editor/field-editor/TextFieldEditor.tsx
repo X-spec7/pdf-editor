@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label"
 import type { Field } from "@/types/pdf-editor"
 import { useEditorStore } from "@/store/useEditorStore"
 import { toast } from "sonner"
+import { Trash2 } from "lucide-react"
 
 interface TextFieldEditorProps {
   field: Field
@@ -25,6 +26,15 @@ export const TextFieldEditor: React.FC<TextFieldEditorProps> = ({ field, onClose
     onClose()
   }
 
+  const handleDelete = () => {
+    updateField({
+      id: field.id,
+      value: undefined,
+    })
+    toast.success("Text field cleared")
+    onClose()
+  }
+
   return (
     <div className="space-y-4">
       <div className="space-y-2">
@@ -39,8 +49,15 @@ export const TextFieldEditor: React.FC<TextFieldEditorProps> = ({ field, onClose
       </div>
 
       <div className="flex justify-end space-x-2">
-        <Button variant="outline" onClick={onClose}>
-          Cancel
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleDelete}
+          className="text-red-500 hover:text-red-700"
+          disabled={!field.value}
+        >
+          <Trash2 className="mr-2 h-4 w-4" />
+          Clear
         </Button>
         <Button onClick={handleSave}>Save</Button>
       </div>

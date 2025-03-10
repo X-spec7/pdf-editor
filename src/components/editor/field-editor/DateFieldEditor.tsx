@@ -7,7 +7,7 @@ import { useEditorStore } from "@/store/useEditorStore"
 import { toast } from "sonner"
 import { Calendar } from "@/components/ui/calendar"
 import { format } from "date-fns"
-import { CalendarIcon } from "lucide-react"
+import { CalendarIcon, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
@@ -34,6 +34,15 @@ export const DateFieldEditor: React.FC<DateFieldEditorProps> = ({ field, onClose
     onClose()
   }
 
+  const handleDelete = () => {
+    updateField({
+      id: field.id,
+      value: undefined,
+    })
+    toast.success("Date field cleared")
+    onClose()
+  }
+
   return (
     <div className="space-y-4">
       <div className="space-y-2">
@@ -55,8 +64,15 @@ export const DateFieldEditor: React.FC<DateFieldEditorProps> = ({ field, onClose
       </div>
 
       <div className="flex justify-end space-x-2">
-        <Button variant="outline" onClick={onClose}>
-          Cancel
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleDelete}
+          className="text-red-500 hover:text-red-700"
+          disabled={!field.value}
+        >
+          <Trash2 className="mr-2 h-4 w-4" />
+          Clear
         </Button>
         <Button onClick={handleSave} disabled={!date}>
           Save

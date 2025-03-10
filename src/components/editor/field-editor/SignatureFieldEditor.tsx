@@ -1,15 +1,14 @@
 import type React from "react"
-import { toast } from "sonner"
-import { useRef, useState } from "react"
-import { Eraser, Undo } from "lucide-react"
-import SignatureCanvas from "react-signature-canvas"
-
+import { useRef, useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import type { Field } from "@/types/pdf-editor"
 import { useEditorStore } from "@/store/useEditorStore"
+import { toast } from "sonner"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Eraser, Trash2, Undo } from "lucide-react"
+import SignatureCanvas from "react-signature-canvas"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface SignatureFieldEditorProps {
@@ -30,12 +29,18 @@ export const SignatureFieldEditor: React.FC<SignatureFieldEditorProps> = ({ fiel
   const updateField = useEditorStore((state) => state.updateField)
   const [activeTab, setActiveTab] = useState<string>("type")
   const [inputValue, setInputValue] = useState(field.value && !field.value.startsWith("data:image") ? field.value : "")
-  const [selectedFont, setSelectedFont] = useState(handwritingFonts[0].fontFamily)
+  const [selectedFont, setSelectedFont] = useState(field.fontFamily || handwritingFonts[0].fontFamily)
 
   const sigCanvas = useRef<SignatureCanvas>(null)
   const [hasSignature, setHasSignature] = useState(false)
 
   // Initialize canvas with existing signature if available
+  useEffect(() => {
+    if (activeTab === "draw" && field.value && field.value.startsWith("data:image")) {
+      loadExistingSignature()
+    }
+  }, [activeTab, field.value])
+
   const loadExistingSignature = () => {
     if (field.value && field.value.startsWith("data:image") && sigCanvas.current) {
       const img = new Image()
@@ -77,27 +82,36 @@ export const SignatureFieldEditor: React.FC<SignatureFieldEditorProps> = ({ fiel
 
   const handleSave = () => {
     let value = ""
+    let fontFamily = undefined
 
     if (activeTab === "type") {
       // Save typed signature with font info
       value = inputValue
-      updateField({
-        id: field.id,
-        value,
-        fontFamily: selectedFont,
-      })
+      fontFamily = selectedFont
     } else {
       // Save drawn signature as data URL
       if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
         value = sigCanvas.current.toDataURL("image/png", { backgroundColor: "transparent" })
-        updateField({
-          id: field.id,
-          value,
-        })
       }
     }
 
+    updateField({
+      id: field.id,
+      value,
+      fontFamily,
+    })
+
     toast.success(`${field.type === "signature" ? "Signature" : "Initials"} updated`)
+    onClose()
+  }
+
+  const handleDelete = () => {
+    updateField({
+      id: field.id,
+      value: undefined,
+      fontFamily: undefined,
+    })
+    toast.success(`${field.type === "signature" ? "Signature" : "Initials"} cleared`)
     onClose()
   }
 
@@ -106,9 +120,7 @@ export const SignatureFieldEditor: React.FC<SignatureFieldEditorProps> = ({ fiel
       <Tabs defaultValue="type" value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="type">Type</TabsTrigger>
-          <TabsTrigger value="draw" onClick={loadExistingSignature}>
-            Draw
-          </TabsTrigger>
+          <TabsTrigger value="draw">Draw</TabsTrigger>
         </TabsList>
 
         <TabsContent value="type" className="mt-4">
@@ -194,8 +206,15 @@ export const SignatureFieldEditor: React.FC<SignatureFieldEditorProps> = ({ fiel
       </Tabs>
 
       <div className="flex justify-end space-x-2 pt-2">
-        <Button variant="outline" onClick={onClose}>
-          Cancel
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleDelete}
+          className="text-red-500 hover:text-red-700"
+          disabled={!field.value}
+        >
+          <Trash2 className="mr-2 h-4 w-4" />
+          Clear
         </Button>
         <Button onClick={handleSave} disabled={activeTab === "draw" ? !hasSignature : !inputValue}>
           Save

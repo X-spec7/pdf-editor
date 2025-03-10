@@ -1,7 +1,6 @@
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { Field, FieldType } from "@/types/pdf-editor";
 import { toast } from "sonner";
-import { useEditorStore } from "@/store/useEditorStore";
 import fontkit from "@pdf-lib/fontkit"
 
 const PX_TO_PT = 0.75;
@@ -50,11 +49,10 @@ export async function exportPdfWithFields(
     pdfDoc.registerFontkit(fontkit);
     const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-    // Get the form from the document
-    const form = pdfDoc.getForm();
-
     // Get the pages
     const pages = pdfDoc.getPages();
+
+    console.log('pages check: ', pages)
 
     // Add each field to the PDF
     for (const field of fields) {
@@ -62,8 +60,9 @@ export async function exportPdfWithFields(
       if (!pdfType) continue; // Skip unsupported field types
       if (!field.value) continue; //Skip for fields of which value is missing
 
+      console.log('page index check: ', field.position.pageIndex)
       // Get the page for this field
-      const page = pages[field.position.pageIndex];
+      const page = pages[field.position.pageIndex - 1];
       if (!page) continue;
 
       // Get page dimensions
