@@ -35,6 +35,7 @@ export interface Field {
   value?: string;
   options?: string[];
   scale?: number;
+  fontFamily?: string;
 }
 
 export class Recipient {

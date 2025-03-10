@@ -1,13 +1,17 @@
-import React from "react";
-import { EditorHeader } from "./EditorHeader";
-import { EditorToolbar } from "./EditorToolbar";
-import { DocumentCanvas } from "./DocumentCanvas";
-import { FieldsPalette } from "./FieldsPalette";
-import { FieldProperties } from "./FieldProperties";
-import { useEditorStore } from "@/store/useEditorStore";
+import type React from "react"
+import { EditorHeader } from "./EditorHeader"
+import { EditorToolbar } from "./EditorToolbar"
+import { DocumentCanvas } from "./DocumentCanvas"
+import { FieldsPalette } from "./FieldsPalette"
+import { FieldsList } from "./FieldsList"
+import { FieldProperties } from "./FieldProperties"
+import { FieldValueEditor } from "./FieldValueEditor"
+import { useEditorStore } from "@/store/useEditorStore"
+import { useUserStore } from "@/store/useUserStore"
 
 export const PDFEditor: React.FC = () => {
-  const selectedFieldId = useEditorStore((state) => state.selectedFieldId);
+  const selectedFieldId = useEditorStore((state) => state.selectedFieldId)
+  const userType = useUserStore((state) => state.userType)
 
   return (
     <div className="flex h-screen flex-col">
@@ -19,14 +23,13 @@ export const PDFEditor: React.FC = () => {
           <DocumentCanvas />
         </div>
 
-        {/* Right sidebar */}
-        <div className="w-96 border-l">
-          <FieldsPalette />
-        </div>
+        {/* Right sidebar - conditionally render based on user type */}
+        <div className="w-96 border-l">{userType === "creator" ? <FieldsPalette /> : <FieldsList />}</div>
       </div>
 
-      {/* Field properties panel (shows when a field is selected) */}
-      {selectedFieldId && <FieldProperties />}
+      {/* Field properties/editor panel (shows when a field is selected) */}
+      {selectedFieldId && (userType === "creator" ? <FieldProperties /> : <FieldValueEditor />)}
     </div>
-  );
-};
+  )
+}
+
