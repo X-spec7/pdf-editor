@@ -1,9 +1,18 @@
 import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { Download, Loader2, Info } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import { useEditorStore } from "@/store/useEditorStore";
 import { exportPdfWithFields } from "@/lib/pdf-export";
-import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   Dialog,
   DialogContent,
@@ -13,14 +22,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 export const ExportPdfButton: React.FC = () => {
   const [isExporting, setIsExporting] = useState(false);
@@ -51,7 +52,7 @@ export const ExportPdfButton: React.FC = () => {
       }
 
       // Export the PDF with fields
-      await exportPdfWithFields(finalFilename, fields);
+      await exportPdfWithFields(pdfFile, finalFilename, fields);
 
       toast.success("PDF exported successfully");
       setIsDialogOpen(false);

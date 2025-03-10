@@ -1,6 +1,10 @@
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { Field, FieldType } from "@/types/pdf-editor";
 import { toast } from "sonner";
+import { useEditorStore } from "@/store/useEditorStore";
+import fontkit from "@pdf-lib/fontkit"
+
+const PX_TO_PT = 0.75;
 
 /**
  * Converts app field type to PDF-lib field type
@@ -36,20 +40,15 @@ const mapFieldType = (fieldType: FieldType): string | null => {
  * @returns A promise that resolves when the PDF is exported
  */
 export async function exportPdfWithFields(
+  pdfBlob: Blob,
   filename: string,
   fields: Field[],
 ): Promise<void> {
   try {
-    if (!window._pdfDocument) {
-      throw new Error("No PDF document loaded");
-    }
+    const pdfDoc = await PDFDocument.load(await pdfBlob.arrayBuffer());
 
-    // Get the PDF data from the loaded document
-    const data = await window._pdfDocument.getData();
-    const pdfBytes = new Uint8Array(data);
-
-    // Load the PDF document with pdf-lib
-    const pdfDoc = await PDFDocument.load(pdfBytes);
+    pdfDoc.registerFontkit(fontkit);
+    const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
     // Get the form from the document
     const form = pdfDoc.getForm();
@@ -57,13 +56,11 @@ export async function exportPdfWithFields(
     // Get the pages
     const pages = pdfDoc.getPages();
 
-    // Embed a standard font for text fields
-    const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-
     // Add each field to the PDF
     for (const field of fields) {
       const pdfType = mapFieldType(field.type);
       if (!pdfType) continue; // Skip unsupported field types
+      if (!field.value) continue; //Skip for fields of which value is missing
 
       // Get the page for this field
       const page = pages[field.position.pageIndex];
@@ -74,43 +71,66 @@ export async function exportPdfWithFields(
 
       // Convert coordinates (PDF coordinate system has origin at bottom-left)
       const x = field.position.x;
-      const y = height - field.position.y - field.size.height;
-
-      // Generate a unique field name
-      const fieldName = field.label
-        ? `${field.label.replace(/\s+/g, "_")}_${field.id}`
-        : `field_${field.id}`;
+      const y = height - field.position.y - field.size.height / 2 + helveticaFont.heightAtSize(12, {descender: true}) / 2;
 
       try {
         switch (pdfType) {
           case "text": {
-            // Create a text field
-            const textField = form.createTextField(fieldName);
-            textField.addToPage(page, {
+            // Add text field
+            page.drawText(field.value, {
               x,
               y,
-              width: field.size.width,
-              height: field.size.height,
-              borderWidth: 1,
-              borderColor: rgb(0.75, 0.75, 0.75),
+              font: helveticaFont,
+              size: 12 * PX_TO_PT,
+              color: rgb(0, 0, 0)
             });
-
-            // Set properties
-            if (field.required) {
-              textField.enableRequired();
-            }
-
-            // Set default value if provided
-            if (field.value) {
-              textField.setText(field.value);
-            }
-
-            // Set text appearance options
-            textField.setFontSize(12);
-            // Use default appearance settings for better compatibility
 
             break;
           }
+          
+          case "date": {
+            // Add date field
+            const dateValue = new Date(field.value).toLocaleDateString();
+
+            page.drawText(dateValue, {
+              x,
+              y,
+              size: 12 * PX_TO_PT,
+              font: helveticaFont,
+              color: rgb(0, 0, 0)
+            });
+
+            break;
+          }
+
+          case "signature":
+            if (field.value.startsWith("data:image")) {
+              // Handle drawed signature
+              try {
+                const signatureBytes = await fetch(field.value).then((res) => res.arrayBuffer())
+                const signatureImage = await pdfDoc.embedPng(signatureBytes)
+                const signatureDims = signatureImage.scale((field.size.width) / signatureImage.width)
+
+                page.drawImage(signatureImage, {
+                  x,
+                  y: y - signatureDims.height + helveticaFont.heightAtSize(12, {descender: true}) + 4,
+                  width: signatureDims.width,
+                  height: signatureDims.height,
+                })
+              } catch (error) {
+                console.error("Error embedding signature image: ", error)
+              }
+            } else {
+              // Handle typed signature
+
+              page.drawText(field.value, {
+                x,
+                y: y - helveticaFont.heightAtSize(12, {descender: true}) / 2 + helveticaFont.heightAtSize(18, {descender: true}) / 2,
+                size: 18 * PX_TO_PT,
+                font: helveticaFont,
+                color: rgb(0, 0, 0)
+              })
+            }
 
           // case "checkbox": {
           //   // Create a checkbox field
@@ -203,106 +223,6 @@ export async function exportPdfWithFields(
 
           //   break;
           // }
-
-          case "signature": {
-            // Create a signature field specifically configured for digital signatures
-            // More comprehensive handling for signature fields
-            const signatureFieldName = `Signature_${fieldName}`;
-            const signatureField = form.createTextField(signatureFieldName);
-
-            signatureField.addToPage(page, {
-              x,
-              y,
-              width: field.size.width,
-              height: field.size.height,
-              borderWidth: 1,
-              borderColor: rgb(0.75, 0.75, 0.75),
-            });
-
-            // Set properties for signature field
-            if (field.required) {
-              signatureField.enableRequired();
-            }
-
-            // Hide any text content for signature field
-            signatureField.setFontSize(0);
-
-            // Attempt to configure as a signature field
-            // PDF-lib has limited support for true PDF signature fields,
-            // but we can make it look like one visually
-
-            // Add a custom appearance using low-level operations
-            const formDict = form.acroForm.dict;
-            const sigField = signatureField.acroField.dict;
-
-            // Mark the field as specially handled
-            sigField.set(pdfDoc.context.obj("FT"), pdfDoc.context.obj("Sig"));
-
-            break;
-          }
-
-          case "date": {
-            // Create a date field (special text field with date format)
-            const dateField = form.createTextField(`Date_${fieldName}`);
-            dateField.addToPage(page, {
-              x,
-              y,
-              width: field.size.width,
-              height: field.size.height,
-              borderWidth: 1,
-              borderColor: rgb(0.75, 0.75, 0.75),
-            });
-
-            // Set properties
-            if (field.required) {
-              dateField.enableRequired();
-            }
-
-            // Set default value if provided
-            if (field.value) {
-              dateField.setText(field.value);
-            }
-
-            // Set appearance options
-            dateField.setFontSize(12);
-
-            break;
-          }
-
-          case "initials": {
-            // Create an initials field (similar to signature but smaller)
-            const initialsFieldName = `Initials_${fieldName}`;
-            const initialsField = form.createTextField(initialsFieldName);
-
-            initialsField.addToPage(page, {
-              x,
-              y,
-              width: field.size.width,
-              height: field.size.height,
-              borderWidth: 1,
-              borderColor: rgb(0.75, 0.75, 0.75),
-            });
-
-            // Set properties
-            if (field.required) {
-              initialsField.enableRequired();
-            }
-
-            // Hide any text content for signature-type field
-            initialsField.setFontSize(0);
-
-            // Attempt to configure as a signature field
-            // PDF-lib has limited support for true PDF signature fields,
-            // but we can make it look like one visually
-
-            // Add a custom appearance using low-level operations
-            const sigField = initialsField.acroField.dict;
-
-            // Mark the field as specially handled
-            sigField.set(pdfDoc.context.obj("FT"), pdfDoc.context.obj("Sig"));
-
-            break;
-          }
         }
       } catch (fieldError) {
         console.error(`Error adding field ${field.id}:`, fieldError);
@@ -331,7 +251,6 @@ export async function exportPdfWithFields(
     return;
   } catch (error) {
     console.error("Error exporting PDF:", error);
-    toast.error("Failed to export PDF");
     throw error;
   }
 }
