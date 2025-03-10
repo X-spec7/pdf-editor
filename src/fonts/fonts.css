@@ -1,0 +1,16 @@
+/* Define custom fonts */
+@font-face {
+  font-family: "Bastliga";
+  src: url("./bastliga.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "CentralWell";
+  src: url("./centralwell.ttf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
