@@ -63,7 +63,7 @@ export const DocumentPage: React.FC<DocumentPageProps> = memo(({
   return (
     <div
       ref={pageRef}
-      className="relative"
+      className="relative z-0"
       onDragOver={(e) => e.preventDefault()}
       onDrop={handleDrop}
     >
@@ -78,9 +78,11 @@ export const DocumentPage: React.FC<DocumentPageProps> = memo(({
       {/* Render fields using their IDs */}
       {pageFieldIds.length > 0 &&
         pageFieldIds.map((fieldId) => (
-          <DocumentField key={fieldId} fieldId={fieldId} />
+          <DocumentField
+            key={fieldId}
+            fieldId={fieldId}
+          />
         ))}
-
       {/* Render any additional children */}
       {children}
     </div>

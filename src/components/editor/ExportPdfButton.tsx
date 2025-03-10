@@ -28,7 +28,7 @@ export const ExportPdfButton: React.FC = () => {
   const [filename, setFilename] = useState("document.pdf");
 
   const fields = useEditorStore((state) => state.fields);
-  const pages = useEditorStore((state) => state.pages);
+  const pdfFile = useEditorStore((state) => state.pdfFile);
 
   const handleExport = async () => {
     // Validate filename
@@ -46,7 +46,7 @@ export const ExportPdfButton: React.FC = () => {
       setIsExporting(true);
 
       // Check if PDF is loaded
-      if (pages.length === 0) {
+      if (!pdfFile) {
         throw new Error("No PDF document loaded");
       }
 
@@ -69,7 +69,7 @@ export const ExportPdfButton: React.FC = () => {
         <Button
           variant="outline"
           className="gap-2"
-          disabled={pages.length === 0}
+          disabled={!pdfFile}
         >
           <Download className="h-4 w-4" />
           Export PDF

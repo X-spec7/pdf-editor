@@ -42,7 +42,6 @@ export const DocumentCanvas: React.FC = memo(() => {
       className="relative h-full w-full overflow-auto bg-gray-100 p-8"
       onClick={() => selectField(null)}
     >
-
       {/* Document pages */}
       <div className="relative mx-auto flex flex-col items-center space-y-8">
         {/* No PDF message when no pages are available */}

@@ -1,6 +1,7 @@
-import React, { memo, useMemo } from "react";
+import React, { memo } from "react";
 import { useEditorStore } from "@/store/useEditorStore";
 import { FieldTypeIcon } from "./FieldTypeIcon";
+import { Rnd } from "react-rnd";
 
 interface DocumentFieldProps {
   fieldId: string;
@@ -26,91 +27,111 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(
     // Fix: Use the correct API for shallow comparison
     const updateField = useEditorStore((state) => state.updateField);
     const selectField = useEditorStore((state) => state.selectField);
-    const setDragging = useEditorStore((state) => state.setDragging);
-    const setResizing = useEditorStore((state) => state.setResizing);
 
     // Get scale as a primitive value
     const scale = useEditorStore((state) => state.scale);
 
     // If field is not found, don't render anything
     if (!field) return null;
-    
+
     return (
-      <div
-        className="field-container"
+      <Rnd
+        onDragStop={(e, d) => {
+          updateField({
+            id: fieldId,
+            position: {
+              x: Math.round(d.x / scale),
+              y: Math.round(d.y / scale),
+              pageIndex: field.position.pageIndex
+            }
+          });
+        }}
+        onResizeStop={(e, direction, ref, delta, position) => {
+          const newWidth = Number.parseFloat(ref.style.width);
+          const newHeight = Number.parseFloat(ref.style.height);
+          
+          // Update both position and size, accounting for scale
+          updateField({
+            id: fieldId,
+            position: {
+              x: Math.round(position.x / scale),
+              y: Math.round(position.y / scale),
+              pageIndex: field.position.pageIndex
+            },
+            size: {
+              width: Math.round(newWidth / scale),
+              height: Math.round(newHeight / scale)
+            }
+          });
+        }}
+        bounds="parent"
+        position={{
+          x: Math.round(field.position.x * scale),
+          y: Math.round(field.position.y * scale),
+        }}
+        size={{
+          width: Math.round(field.size.width * scale),
+          height: Math.round(field.size.height * scale)
+        }}
+        default={{
+          x: Math.round(field.position.x * scale),
+          y: Math.round(field.position.y * scale),
+          width: Math.round(field.size.width * scale),
+          height: Math.round(field.size.height * scale)
+        }}
+        disableDragging={isSelected}
         style={{
+          zIndex: 20,
           position: "absolute",
-          left: `${field.position.x}px`,
-          top: `${field.position.y}px`,
-          width: `${field.size.width}px`,
-          height: `${field.size.height}px`,
           backgroundColor: "transparent",
           border: isSelected
             ? `1px solid ${recipient.color}`
             : `2px dashed ${recipient.color}`,
           borderRadius: "4px",
-          cursor: "move",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           boxShadow: isSelected
             ? `0 0 0 1px ${recipient.color}, 0 0 8px rgba(0, 0, 0, 0.1)`
             : "none",
-          zIndex: isSelected ? 10 : 1,
           transition: "box-shadow 0.2s ease",
         }}
-        onMouseDown={(e) => {
-          e.preventDefault();
-          setDragging(true);
-        }}
-        data-field-id={fieldId}
-        data-field-type={field.type}
       >
         <div
-          className="field-content"
-          style={{
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "rgba(255, 255, 255, 0.5)",
-            borderRadius: "2px",
-            pointerEvents: "none",
-            padding: "4px",
+          className="w-full h-full"
+          onDoubleClick={(e) => {
+            e.stopPropagation();
+            selectField(field.id)
           }}
+          data-field-id={fieldId}
+          data-field-type={field.type}
         >
-          <FieldTypeIcon type={field.type} />
-          {field.label && (
-            <span
-              className="field-label"
-              style={{ marginLeft: "4px", fontSize: "12px" }}
-            >
-              {field.label}
-            </span>
-          )}
-        </div>
-
-        {isSelected && (
           <div
-            className="resize-handle"
+            className="field-content"
             style={{
-              position: "absolute",
-              right: "-4px",
-              bottom: "-4px",
-              width: "8px",
-              height: "8px",
-              backgroundColor: recipient.color,
-              cursor: "nwse-resize",
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "rgba(255, 255, 255, 0.5)",
               borderRadius: "2px",
+              pointerEvents: "none",
+              padding: "4px",
             }}
-            onMouseDown={(e) => {
-              e.preventDefault();
-              setResizing(true);
-            }}
-          />
-        )}
-      </div>
-    );
+          >
+            <FieldTypeIcon type={field.type} />
+            {field.label && (
+              <span
+                className="field-label"
+                style={{ marginLeft: "4px", fontSize: "12px" }}
+              >
+                {field.label}
+              </span>
+            )}
+          </div>
+        </div>
+      </Rnd>
+    )
   },
 );

@@ -195,7 +195,6 @@ export const useEditorStore = create<EditorStore>()(
 
         setResizing: (isResizing) => set({ isResizing }),
 
-
         setPdfFile: (pdfFile) => set({ pdfFile }),
 
         // Selectors
