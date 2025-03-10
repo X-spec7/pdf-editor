@@ -7,7 +7,6 @@ import {
   FieldPosition,
   FieldSize,
   FieldType,
-  DocumentPage,
   Recipient,
 } from "@/types/pdf-editor";
 
@@ -33,10 +32,10 @@ interface EditorStore extends EditorState {
   ) => void;
   deleteRecipient: (id: string) => void;
   setCurrentRecipient: (id: string | null) => void;
-  setPages: (pages: DocumentPage[]) => void;
   setScale: (scale: number) => void;
   setDragging: (isDragging: boolean) => void;
   setResizing: (isResizing: boolean) => void;
+  setPdfFile: (pdfFile: Blob) => void;
 
   // Selectors
   getRecipientById: (id: string | null) => Recipient | null;
@@ -61,10 +60,10 @@ const initialRecipients: Recipient[] = [
 // Initial state
 const initialState: EditorState = {
   fields: [],
+  pdfFile: null,
   selectedFieldId: null,
   recipients: initialRecipients,
   currentRecipient: initialRecipients[0].id,
-  pages: [],
   scale: 1,
   isDragging: false,
   isResizing: false,
@@ -190,13 +189,14 @@ export const useEditorStore = create<EditorStore>()(
 
         setCurrentRecipient: (id) => set({ currentRecipient: id }),
 
-        setPages: (pages) => set({ pages }),
-
         setScale: (scale) => set({ scale }),
 
         setDragging: (isDragging) => set({ isDragging }),
 
         setResizing: (isResizing) => set({ isResizing }),
+
+
+        setPdfFile: (pdfFile) => set({ pdfFile }),
 
         // Selectors
         getRecipientById: (id: string | null) => {
@@ -241,7 +241,6 @@ export const useEditorStore = create<EditorStore>()(
 
           // Ensure pages and fields are empty on reload
           if (state) {
-            state.pages = [];
             state.fields = [];
           }
         },

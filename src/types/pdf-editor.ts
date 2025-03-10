@@ -1,4 +1,5 @@
 import { LucideIcon } from "lucide-react";
+import { PDFDocument } from "pdf-lib";
 
 export type FieldType =
   | "text"
@@ -181,18 +182,12 @@ export class Recipient {
   }
 }
 
-export interface DocumentPage {
-  pageIndex: number;
-  width: number;
-  height: number;
-}
-
 export interface EditorState {
   fields: Field[];
+  pdfFile: Blob | null;
   selectedFieldId: string | null;
   recipients: Recipient[];
   currentRecipient: string | null;
-  pages: DocumentPage[];
   scale: number;
   isDragging: boolean;
   isResizing: boolean;
