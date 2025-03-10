@@ -50,7 +50,7 @@ const FileUpload = () => {
   return (
     <div
       {...getRootProps()}
-      className={`flex h-[80vh] w-[600px] flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-white p-12 text-center ${isDragActive
+      className={`flex h-[80vh] w-[600px] flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-white p-12 text-center cursor-pointer ${isDragActive
         ? "border-primary bg-primary/5"
         : "border-border hover:border-primary/50"
         }`}

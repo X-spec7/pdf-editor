@@ -34,7 +34,7 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(
 
     // If field is not found, don't render anything
     if (!field) return null;
-
+    
     return (
       <div
         className="field-container"

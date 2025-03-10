@@ -52,7 +52,7 @@ export const DocumentCanvas: React.FC = memo(() => {
           // Render pages when available
           <Document
             file={pdfFile}
-            className={"flex flex-col w-full justify-center items-center gap-4 overflow-auto no-scrollbar"}
+            className={"flex flex-col w-full justify-center items-center gap-4 no-scrollbar"}
             onLoadSuccess={onDocumentLoadSuccess}
             options={options}
           >
