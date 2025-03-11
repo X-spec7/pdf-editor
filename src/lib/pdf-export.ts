@@ -94,6 +94,9 @@ export async function exportPdfWithFields(pdfBlob: Blob, filename: string, field
 
     // Load the default font
     const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica)
+    const fontUrl = "/src/fonts/dancing.ttf"; 
+    const dancingFontBytes = await fetch(fontUrl).then(res => res.arrayBuffer())
+    const dancingFont = await pdfDoc.embedFont(dancingFontBytes, {subset: true})
 
     // Get the pages
     const pages = pdfDoc.getPages()
@@ -174,23 +177,6 @@ export async function exportPdfWithFields(pdfBlob: Blob, filename: string, field
               let font = helveticaFont
               let fontSize = 18 * PX_TO_PT
 
-              // Try to load custom font if specified
-              if (field.fontFamily) {
-                const fontPath = getFontPath(field.fontFamily)
-                if (fontPath) {
-                  try {
-                    const fontData = await loadFont(fontPath)
-                    font = await pdfDoc.embedFont(fontData)
-
-                    // Adjust font size for custom fonts which may render differently
-                    fontSize = field.type === "signature" ? 18 * PX_TO_PT : 14 * PX_TO_PT
-                  } catch (fontError) {
-                    console.warn(`Could not load custom font, using fallback: ${fontError}`)
-                    // Continue with Helvetica as fallback
-                  }
-                }
-              }
-
               // Calculate vertical position adjustment for the font
               const fontHeight = font.heightAtSize(fontSize, { descender: true })
               const yPos = y + fontHeight / 2 - helveticaFont.heightAtSize(12, { descender: true }) / 2
@@ -199,9 +185,10 @@ export async function exportPdfWithFields(pdfBlob: Blob, filename: string, field
                 x,
                 y: yPos,
                 size: fontSize,
-                font: font,
+                font: dancingFont,
                 color: rgb(0, 0, 0),
               })
+
             }
             break
           }
