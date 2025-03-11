@@ -14,3 +14,11 @@
   font-style: normal;
   font-display: swap;
 }
+
+@font-face {
+  font-family: "DancingFont";
+  src: url("./dancing.ttf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}

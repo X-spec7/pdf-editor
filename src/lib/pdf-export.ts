@@ -47,6 +47,7 @@ function getFontPath(fontFamily: string): string | null {
   const fontMap: Record<string, string> = {
     Bastliga: "/src/fonts/bastliga.otf",
     CentralWell: "/src/fonts/centralwell.ttf",
+    DancingFont: "/src/fonts/dancing.ttf",
   }
 
   return fontMap[primaryFont] || null
@@ -72,7 +73,7 @@ const mapFieldType = (fieldType: FieldType): string | null => {
     case "initials":
       return "signature"
     case "date":
-      return "text" // Date fields are text fields with special formatting
+      return "date" // Date fields are text fields with special formatting
     default:
       return null // Some field types might not have direct equivalents
   }
@@ -113,9 +114,9 @@ export async function exportPdfWithFields(pdfBlob: Blob, filename: string, field
       const scaleFactor = width / 1000
 
       // Convert coordinates (PDF coordinate system has origin at bottom-left)
-      const x = field.position.x
+      const x = field.position.x * scaleFactor
       const y =
-        height - field.position.y - field.size.height / 2 + helveticaFont.heightAtSize(12, { descender: true }) / 2
+        height - field.position.y * scaleFactor - field.size.height / 2 + helveticaFont.heightAtSize(12, { descender: true }) / 2
 
       try {
         switch (pdfType) {
@@ -134,7 +135,11 @@ export async function exportPdfWithFields(pdfBlob: Blob, filename: string, field
 
           case "date": {
             // Add date field
-            const dateValue = new Date(field.value).toLocaleDateString()
+            const dateValue = new Date(field.value).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })
 
             page.drawText(dateValue, {
               x,
@@ -157,9 +162,9 @@ export async function exportPdfWithFields(pdfBlob: Blob, filename: string, field
 
                 page.drawImage(signatureImage, {
                   x,
-                  y: y - signatureDims.height + field.size.height / 2 + helveticaFont.heightAtSize(12, { descender: true }),
-                  width: signatureDims.width,
-                  height: signatureDims.height,
+                  y: y - signatureDims.height + field.size.height / 2 - helveticaFont.heightAtSize(12, { descender: true }) / 2,
+                  width: signatureDims.width * scaleFactor,
+                  height: signatureDims.height * scaleFactor,
                 })
               } catch (error) {
                 console.error("Error embedding signature image: ", error)
@@ -188,7 +193,7 @@ export async function exportPdfWithFields(pdfBlob: Blob, filename: string, field
 
               // Calculate vertical position adjustment for the font
               const fontHeight = font.heightAtSize(fontSize, { descender: true })
-              const yPos = y - fontHeight / 2 + helveticaFont.heightAtSize(12, { descender: true }) / 2
+              const yPos = y + fontHeight / 2 - helveticaFont.heightAtSize(12, { descender: true }) / 2
 
               page.drawText(field.value, {
                 x,

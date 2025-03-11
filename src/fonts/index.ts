@@ -7,9 +7,14 @@ export const customFonts = [
     variable: "bastliga",
   },
   {
-    name: "Central Well",
+    name: "CentralWell",
     fontFamily: "CentralWell, cursive",
     variable: "centralwell"
+  },
+  {
+    name: "DancingFont",
+    fontFamily: "DancingFont, cursive",
+    variable: "dancingfont"
   }
 ]
 
