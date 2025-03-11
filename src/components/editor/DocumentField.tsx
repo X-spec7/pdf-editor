@@ -1,9 +1,10 @@
 import type React from "react"
 import { memo } from "react"
+import { Rnd } from "react-rnd"
+
 import { useEditorStore } from "@/store/useEditorStore"
 import { useUserStore } from "@/store/useUserStore"
 import { FieldTypeIcon } from "./FieldTypeIcon"
-import { Rnd } from "react-rnd"
 
 interface DocumentFieldProps {
   fieldId: string
@@ -36,26 +37,13 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
 
   // Render field content based on field type and value
   const renderFieldContent = () => {
-    if (!field.value) {
+    if (!field.value || userType === "creator") {
       // Default content when no value is present
       return (
-        <div
-          className="field-content"
-          style={{
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "rgba(255, 255, 255, 0.5)",
-            borderRadius: "2px",
-            pointerEvents: "none",
-            padding: "4px",
-          }}
-        >
+        <div className="flex items-center justify-center w-full h-full bg-white/50 rounded-sm pointer-events-none p-1">
           <FieldTypeIcon type={field.type} />
           {field.label && (
-            <span className="field-label" style={{ marginLeft: "4px", fontSize: "12px" }}>
+            <span className="" style={{ marginLeft: "4px", fontSize: "12px" }}>
               {field.label}
             </span>
           )}
@@ -67,37 +55,13 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
     switch (field.type) {
       case "text":
         return (
-          <div
-            className="field-content"
-            style={{
-              width: "100%",
-              height: "100%",
-              display: "flex",
-              alignItems: "center",
-              padding: "4px",
-              backgroundColor: "rgba(255, 255, 255, 0.7)",
-              borderRadius: "2px",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}
-          >
+          <div className="flex items-center w-full h-full rounded-sm p-1 bg-white/70 overflow-hidden text-ellipsis">
             <span style={{ fontSize: "14px" }}>{field.value}</span>
           </div>
         )
       case "date":
         return (
-          <div
-            className="field-content"
-            style={{
-              width: "100%",
-              height: "100%",
-              display: "flex",
-              alignItems: "center",
-              padding: "4px",
-              backgroundColor: "rgba(255, 255, 255, 0.7)",
-              borderRadius: "2px",
-            }}
-          >
+          <div className="flex items-center w-full h-full rounded-sm p-1 bg-white/70">
             <span style={{ fontSize: "14px" }}>{new Date(field.value).toLocaleDateString()}</span>
           </div>
         )
@@ -106,49 +70,20 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
         if (field.value.startsWith("data:image")) {
           // Render image signature
           return (
-            <div
-              className="field-content"
-              style={{
-                width: "100%",
-                height: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "rgba(255, 255, 255, 0.7)",
-                borderRadius: "2px",
-                padding: "4px",
-              }}
-            >
+            <div className="flex justify-start items-center w-full h-full bg-white/70 rounded-sm p-1">
               <img
                 src={field.value || "/placeholder.svg"}
                 alt={field.type === "signature" ? "Signature" : "Initials"}
-                style={{
-                  maxWidth: "100%",
-                  maxHeight: "100%",
-                  objectFit: "contain",
-                }}
+                className="h-full object-contain"
               />
             </div>
           )
         } else {
           // Render text signature
           return (
-            <div
-              className="field-content"
-              style={{
-                width: "100%",
-                height: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "rgba(255, 255, 255, 0.7)",
-                borderRadius: "2px",
-                padding: "4px",
-              }}
-            >
-              <span
+            <div className="flex items-center justify-start text-black/70 w-full h-full rounded-sm p-1">
+              <span className={`${field.type === "signature" ? 'text-lg' : 'text-base'}`}
                 style={{
-                  fontSize: field.type === "signature" ? "18px" : "16px",
                   fontFamily: field.fontFamily || "cursive",
                 }}
               >
@@ -159,23 +94,10 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
         }
       default:
         return (
-          <div
-            className="field-content"
-            style={{
-              width: "100%",
-              height: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: "rgba(255, 255, 255, 0.5)",
-              borderRadius: "2px",
-              pointerEvents: "none",
-              padding: "4px",
-            }}
-          >
+          <div className="flex items-center justify-start text-black/50 w-full h-full rounded-sm p-1">
             <FieldTypeIcon type={field.type} />
             {field.label && (
-              <span className="field-label" style={{ marginLeft: "4px", fontSize: "12px" }}>
+              <span className="ml-1 text-xs">
                 {field.label}
               </span>
             )}
@@ -188,18 +110,15 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
   if (userType === "signer") {
     return (
       <div
+        className="absolute z-20 rounded-sm bg-transparent"
         style={{
-          position: "absolute",
-          zIndex: 20,
           left: Math.round(field.position.x * scale),
           top: Math.round(field.position.y * scale),
           width: Math.round(field.size.width * scale),
           height: Math.round(field.size.height * scale),
           border: isSelected ? `1px solid ${recipient.color}` : `2px dashed ${recipient.color}`,
-          borderRadius: "4px",
           boxShadow: isSelected ? `0 0 0 1px ${recipient.color}, 0 0 8px rgba(0, 0, 0, 0.1)` : "none",
           transition: "box-shadow 0.2s ease",
-          backgroundColor: "transparent",
         }}
         onClick={(e) => {
           e.stopPropagation()
