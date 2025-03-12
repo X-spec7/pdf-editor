@@ -111,12 +111,12 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
   if (userType === "signer") {
     return (
       <div
-        className="absolute z-20 rounded-sm bg-transparent"
+        className="absolute z-20 rounded-sm bg-transparent px-3 py-2"
         style={{
           left: Math.round(field.position.x * scale),
           top: Math.round(field.position.y * scale),
-          width: Math.round(field.size.width * scale),
-          height: Math.round(field.size.height * scale),
+          // width: Math.round(field.size.width * scale),
+          // height: Math.round(field.size.height * scale),
           border: isSelected ? `1px solid ${recipient.color}` : `2px dashed ${recipient.color}`,
           boxShadow: isSelected ? `0 0 0 1px ${recipient.color}, 0 0 8px rgba(0, 0, 0, 0.1)` : "none",
           transition: "box-shadow 0.2s ease",
