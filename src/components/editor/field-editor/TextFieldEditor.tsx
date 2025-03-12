@@ -7,6 +7,7 @@ import type { Field } from "@/types/pdf-editor"
 import { useEditorStore } from "@/store/useEditorStore"
 import { toast } from "sonner"
 import { Trash2 } from "lucide-react"
+import { Textarea } from "@/components/ui/textarea"
 
 interface TextFieldEditorProps {
   field: Field
@@ -39,11 +40,12 @@ export const TextFieldEditor: React.FC<TextFieldEditorProps> = ({ field, onClose
     <div className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="text-field-input">{field.label || "Enter text"}</Label>
-        <Input
+        <Textarea
           id="text-field-input"
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder="Enter your text"
+          className="min-h-[100px] resize-none"
           autoFocus
         />
       </div>

@@ -1,4 +1,4 @@
-import type React from "react"
+import React from "react"
 import { memo } from "react"
 import { Rnd } from "react-rnd"
 
@@ -36,6 +36,15 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
   // If field is not found, don't render anything
   if (!field || !recipient) return null
 
+  const formatMultilineText = (text: string) => {
+    return text.split("\n").map((line, i) => (
+      <React.Fragment key={i}>
+        {line}
+        {i < text.split("\n").length - 1 && <br />}
+      </React.Fragment>
+    ))
+  }
+
   // Render field content based on field type and value
   const renderFieldContent = () => {
     if (!field.value || userType === "creator") {
@@ -56,8 +65,23 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
     switch (field.type) {
       case "text":
         return (
-          <div className="flex items-center w-full h-full rounded-sm p-1 bg-white/70 overflow-hidden text-ellipsis">
-            <span style={{ fontSize: "14px" }}>{field.value}</span>
+          <div
+            className="field-content"
+            style={{
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              alignItems: field.value.includes('\n') ? "flex-start" : "center",
+              padding: "4px",
+              backgroundColor: "rgba(255, 255, 255, 0.7)",
+              borderRadius: "2px",
+              overflow: "auto",
+              textOverflow: "ellipsis",
+              fontSize: "14px",
+              lineHeight: "1.4",
+            }}
+          >
+            {formatMultilineText(field.value)}
           </div>
         )
       case "date":

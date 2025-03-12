@@ -95,9 +95,9 @@ export async function exportPdfWithFields(pdfBlob: Blob, filename: string, field
 
     // Load the default font
     const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica)
-    const fontUrl = "/src/fonts/dancing.ttf"; 
+    const fontUrl = "/src/fonts/dancing.ttf";
     const dancingFontBytes = await fetch(fontUrl).then(res => res.arrayBuffer())
-    const dancingFont = await pdfDoc.embedFont(dancingFontBytes, {subset: true})
+    const dancingFont = await pdfDoc.embedFont(dancingFontBytes, { subset: true })
 
     // Get the pages
     const pages = pdfDoc.getPages()
@@ -125,15 +125,45 @@ export async function exportPdfWithFields(pdfBlob: Blob, filename: string, field
       try {
         switch (pdfType) {
           case "text": {
-            // Add text field
-            page.drawText(field.value, {
-              x,
-              y,
-              font: helveticaFont,
-              size: 12 * PX_TO_PT,
-              color: rgb(0, 0, 0),
-            })
+            // Handle multi-line text
+            if (field.value.includes("\n")) {
+              const lines = field.value.split("\n")
+              const fontSize = 12 * PX_TO_PT
+              const lineHeight = helveticaFont.heightAtSize(fontSize) * 1.2
 
+              // Calculate starting y position for the first line
+              // Position at the top of the field and work downward
+              let currentY = height - field.position.y - fontSize
+
+              // Draw each line of text
+              for (let i = 0; i < lines.length; i++) {
+                if (lines[i].trim() === "") {
+                  // Just move down for empty lines
+                  currentY -= lineHeight
+                  continue
+                }
+
+                page.drawText(lines[i], {
+                  x,
+                  y: currentY,
+                  font: helveticaFont,
+                  size: fontSize,
+                  color: rgb(0, 0, 0),
+                })
+
+                // Move down for the next line
+                currentY -= lineHeight
+              }
+            } else {
+              // Single line text
+              page.drawText(field.value, {
+                x,
+                y,
+                font: helveticaFont,
+                size: 12 * PX_TO_PT,
+                color: rgb(0, 0, 0),
+              })
+            }
             break
           }
 
