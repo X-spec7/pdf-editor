@@ -2,6 +2,7 @@ import { PDFDocument, rgb, StandardFonts } from "pdf-lib"
 import type { Field, FieldType } from "@/types/pdf-editor"
 import { toast } from "sonner"
 import fontkit from "@pdf-lib/fontkit"
+import { DEFAULT_PDF_WIDTH } from "@/constants"
 
 const PX_TO_PT = 0.75
 
@@ -114,7 +115,7 @@ export async function exportPdfWithFields(pdfBlob: Blob, filename: string, field
       // Get page dimensions
       const { width, height } = page.getSize()
 
-      const scaleFactor = width / 1000
+      const scaleFactor = width / DEFAULT_PDF_WIDTH
 
       // Convert coordinates (PDF coordinate system has origin at bottom-left)
       const x = field.position.x * scaleFactor

@@ -5,6 +5,7 @@ import { Rnd } from "react-rnd"
 import { useEditorStore } from "@/store/useEditorStore"
 import { useUserStore } from "@/store/useUserStore"
 import { FieldTypeIcon } from "./FieldTypeIcon"
+import { MINIMUM_FIELD_HEIGHT, MINIMUM_FIELD_WIDTH } from "@/constants"
 
 interface DocumentFieldProps {
   fieldId: string
@@ -178,6 +179,8 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
         width: Math.round(field.size.width * scale),
         height: Math.round(field.size.height * scale),
       }}
+      minWidth={MINIMUM_FIELD_WIDTH}
+      minHeight={MINIMUM_FIELD_HEIGHT}
       disableDragging={isSelected}
       style={{
         zIndex: 20,
