@@ -88,7 +88,7 @@ export const TextFormatToolbar: React.FC<TextFormatToolbarProps> = ({ fieldId, o
   }
 
   return (
-    <div className="absolute -top-10 left-0 z-30 flex items-center gap-1 bg-white rounded-md shadow-md p-1 border">
+    <div className="absolute -top-12 left-0 z-30 flex items-center gap-1 bg-white rounded-md shadow-md p-1 border">
       {/* Font Family */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
