@@ -80,6 +80,16 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
     }
   }
 
+  const getFieldLabel = (fieldType: string) => {
+    switch (fieldType) {
+      case "signature":
+      case "initials":
+        return "Sign Here"
+      case "date":
+        return "Date Here"
+    }
+  }
+
   // Render field content based on field type and value
   const renderFieldContent = () => {
     if (field.type === "text" && userType === "signer") {
@@ -103,7 +113,7 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
       )
     }
 
-    if (!field.value || userType === "creator") {
+    if (!field.value && userType === "creator") {
       // Default content when no value is present
       return (
         <div className="flex items-center justify-center w-full h-full bg-white/50 rounded-sm pointer-events-none p-1">
@@ -113,6 +123,15 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
               {field.label}
             </span>
           )}
+        </div>
+      )
+    }
+
+    if (!field.value) {
+      return (
+        <div className="flex items-center justify-center w-full h-full bg-white/50 rounded-sm pointer-events-none p-1">
+          <FieldTypeIcon type={field.type} />
+          <span className="ml-1 text-xs">{getFieldLabel(field.type)}</span>
         </div>
       )
     }
@@ -182,7 +201,7 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
         return (
           <div className="flex items-center justify-start text-black/50 w-full h-full rounded-sm p-1">
             <FieldTypeIcon type={field.type} />
-            {field.label && <span className="ml-1 text-xs">{field.label}</span>}
+            <span className="ml-1 text-xs">{getFieldLabel(field.type)}</span>
           </div>
         )
     }
