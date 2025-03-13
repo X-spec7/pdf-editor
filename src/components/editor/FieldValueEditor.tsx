@@ -42,8 +42,8 @@ export const FieldValueEditor: React.FC = () => {
   return (
     <div
       className={cn(
-        "fixed right-[400px] top-[120px] z-10 w-80 rounded-lg border bg-white p-4 shadow-lg",
-        "animate-scale-in transition-all duration-200 ease-out",
+        "absolute left-1/2 top-1/2 z-50 w-80 rounded-lg border bg-white p-4 shadow-lg",
+        "transition-all duration-200 ease-out -translate-x-1/2 -translate-y-1/2",
       )}
     >
       <div className="mb-4 flex items-center justify-between">
