@@ -174,7 +174,13 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
         if (field.value.startsWith("data:image")) {
           // Render image signature
           return (
-            <div className="flex justify-start items-center w-full h-full bg-white/70 rounded-sm p-1">
+            <div
+              className="flex justify-start items-center bg-white/70 rounded-sm p-1"
+              style={{
+                width: field.size.width,
+                height: field.size.height,
+              }}
+            >
               <img
                 src={field.value || "/placeholder.svg"}
                 alt={field.type === "signature" ? "Signature" : "Initials"}
