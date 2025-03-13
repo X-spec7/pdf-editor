@@ -36,9 +36,7 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
   const scale = useEditorStore((state) => state.scale)
 
   // State for direct editing
-  const [isEditing, setIsEditing] = useState(false)
   const [showToolbar, setShowToolbar] = useState(false)
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   // If field is not found, don't render anything
   if (!field || !recipient) return null
@@ -63,13 +61,12 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
   // Handle focus
   const handleFocus = () => {
     selectField(fieldId)
-    setIsEditing(true)
     setShowToolbar(true)
   }
 
   // Handle blur
   const handleBlur = () => {
-    setIsEditing(false)
+    // 
   }
 
   // Apply font styling
