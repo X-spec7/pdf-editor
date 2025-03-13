@@ -1,13 +1,32 @@
-import { PDFDocument, rgb, StandardFonts } from "pdf-lib"
-import type { Field, FieldType } from "@/types/pdf-editor"
 import { toast } from "sonner"
-import fontkit from "@pdf-lib/fontkit"
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib"
+
+import type { Field, FieldType } from "@/types/pdf-editor"
 import { DEFAULT_PDF_WIDTH } from "@/constants"
+import fontkit from "@pdf-lib/fontkit"
 
 const PX_TO_PT = 0.75
 
 // Font cache to avoid reloading fonts
 const fontCache: Record<string, ArrayBuffer> = {}
+
+/**
+ * Converts a hex color string to RGB values for PDF-lib
+ *
+ * @param hex - Hex color string (e.g., "#FF0000")
+ * @returns RGB color object for PDF-lib
+ */
+function rgbFromHex(hex: string): ReturnType<typeof rgb> {
+  // Remove # if present
+  hex = hex.replace("#", "")
+
+  // Parse the hex values
+  const r = Number.parseInt(hex.substring(0, 2), 16) / 255
+  const g = Number.parseInt(hex.substring(2, 4), 16) / 255
+  const b = Number.parseInt(hex.substring(4, 6), 16) / 255
+
+  return rgb(r, g, b)
+}
 
 /**
  * Loads a font file and caches it
@@ -95,8 +114,8 @@ export async function exportPdfWithFields(pdfBlob: Blob, filename: string, field
 
     // Load the default font
     const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica)
-    const fontUrl = "/src/fonts/dancing.ttf";
-    const dancingFontBytes = await fetch(fontUrl).then(res => res.arrayBuffer())
+    const fontUrl = "/src/fonts/dancing.ttf"
+    const dancingFontBytes = await fetch(fontUrl).then((res) => res.arrayBuffer())
     const dancingFont = await pdfDoc.embedFont(dancingFontBytes, { subset: true })
 
     // Get the pages
@@ -120,7 +139,10 @@ export async function exportPdfWithFields(pdfBlob: Blob, filename: string, field
       // Convert coordinates (PDF coordinate system has origin at bottom-left)
       const x = field.position.x * scaleFactor
       const y =
-        height - field.position.y * scaleFactor - field.size.height / 2 + helveticaFont.heightAtSize(12, { descender: true }) / 2
+        height -
+        field.position.y * scaleFactor -
+        field.size.height / 2 +
+        helveticaFont.heightAtSize(12, { descender: true }) / 2
 
       try {
         switch (pdfType) {
@@ -128,12 +150,12 @@ export async function exportPdfWithFields(pdfBlob: Blob, filename: string, field
             // Handle multi-line text
             if (field.value.includes("\n")) {
               const lines = field.value.split("\n")
-              const fontSize = 12 * PX_TO_PT
+              const fontSize = (field.fontSize || 12) * PX_TO_PT
               const lineHeight = helveticaFont.heightAtSize(fontSize) * 1.2
 
               // Calculate starting y position for the first line
               // Position at the top of the field and work downward
-              let currentY = height - field.position.y - fontSize
+              let currentY = y
 
               // Draw each line of text
               for (let i = 0; i < lines.length; i++) {
@@ -148,7 +170,7 @@ export async function exportPdfWithFields(pdfBlob: Blob, filename: string, field
                   y: currentY,
                   font: helveticaFont,
                   size: fontSize,
-                  color: rgb(0, 0, 0),
+                  color: field.fontColor ? rgbFromHex(field.fontColor) : rgb(0, 0, 0),
                 })
 
                 // Move down for the next line
@@ -160,8 +182,8 @@ export async function exportPdfWithFields(pdfBlob: Blob, filename: string, field
                 x,
                 y,
                 font: helveticaFont,
-                size: 12 * PX_TO_PT,
-                color: rgb(0, 0, 0),
+                size: (field.fontSize || 12) * PX_TO_PT,
+                color: field.fontColor ? rgbFromHex(field.fontColor) : rgb(0, 0, 0),
               })
             }
             break
@@ -169,10 +191,10 @@ export async function exportPdfWithFields(pdfBlob: Blob, filename: string, field
 
           case "date": {
             // Add date field
-            const dateValue = new Date(field.value).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
+            const dateValue = new Date(field.value).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
             })
 
             page.drawText(dateValue, {
@@ -192,11 +214,15 @@ export async function exportPdfWithFields(pdfBlob: Blob, filename: string, field
               try {
                 const signatureBytes = await fetch(field.value).then((res) => res.arrayBuffer())
                 const signatureImage = await pdfDoc.embedPng(signatureBytes)
-                const signatureDims = signatureImage.scale(field.size.width * scaleFactor / signatureImage.width)
+                const signatureDims = signatureImage.scale((field.size.width * scaleFactor) / signatureImage.width)
 
                 page.drawImage(signatureImage, {
                   x,
-                  y: y - signatureDims.height + field.size.height / 2 - helveticaFont.heightAtSize(12, { descender: true }) / 2,
+                  y:
+                    y -
+                    signatureDims.height +
+                    field.size.height / 2 -
+                    helveticaFont.heightAtSize(12, { descender: true }) / 2,
                   width: signatureDims.width * scaleFactor,
                   height: signatureDims.height * scaleFactor,
                 })
@@ -205,8 +231,8 @@ export async function exportPdfWithFields(pdfBlob: Blob, filename: string, field
               }
             } else {
               // Handle typed signature with custom font if available
-              let font = helveticaFont
-              let fontSize = 18 * PX_TO_PT
+              const font = helveticaFont
+              const fontSize = 18 * PX_TO_PT
 
               // Calculate vertical position adjustment for the font
               const fontHeight = font.heightAtSize(fontSize, { descender: true })
@@ -219,7 +245,6 @@ export async function exportPdfWithFields(pdfBlob: Blob, filename: string, field
                 font: dancingFont,
                 color: rgb(0, 0, 0),
               })
-
             }
             break
           }

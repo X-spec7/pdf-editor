@@ -1,14 +1,15 @@
 import type React from "react"
 import { useState } from "react"
+import { toast } from "sonner"
+import { format } from "date-fns"
+import { CalendarIcon, Trash2 } from "lucide-react"
+
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import type { Field } from "@/types/pdf-editor"
 import { useEditorStore } from "@/store/useEditorStore"
-import { toast } from "sonner"
 import { Calendar } from "@/components/ui/calendar"
-import { format } from "date-fns"
-import { CalendarIcon, Trash2 } from "lucide-react"
-import { cn } from "@/lib/utils"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 interface DateFieldEditorProps {

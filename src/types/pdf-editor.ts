@@ -1,5 +1,4 @@
-import { LucideIcon } from "lucide-react";
-import { PDFDocument } from "pdf-lib";
+import type { LucideIcon } from "lucide-react"
 
 export type FieldType =
   | "text"
@@ -11,38 +10,61 @@ export type FieldType =
   | "dropdown"
   | "card"
   | "file"
-  | "stamp";
+  | "stamp"
 
 export type FieldSize = {
-  width: number;
-  height: number;
-};
+  width: number
+  height: number
+}
 
 export type FieldPosition = {
-  x: number;
-  y: number;
-  pageIndex: number;
-};
+  x: number
+  y: number
+  pageIndex: number
+}
 
 export interface Field {
-  id: string;
-  type: FieldType;
-  position: FieldPosition;
-  size: FieldSize;
-  recipientId: string;
-  required?: boolean;
-  label?: string;
-  value?: string;
-  options?: string[];
-  scale?: number;
-  fontFamily?: string;
+  id: string
+  type: FieldType
+  position: FieldPosition
+  size: FieldSize
+  recipientId: string
+  required?: boolean
+  label?: string
+  value?: string
+  options?: string[]
+  scale?: number
+  fontFamily?: string
+  fontSize?: number
+  fontColor?: string
+  fontWeight?: string
+  fontStyle?: string
+}
+
+export interface EditorState {
+  fields: Field[]
+  pdfFile: Blob | null
+  selectedFieldId: string | null
+  recipients: Recipient[]
+  currentRecipient: string | null
+  scale: number
+  isDragging: boolean
+  isResizing: boolean
+}
+
+export type FieldTemplate = {
+  type: FieldType
+  icon: LucideIcon
+  label: string
+  defaultSize: FieldSize
+  category: "basic" | "advanced"
 }
 
 export class Recipient {
-  id: string;
-  name: string;
-  email: string;
-  color: string;
+  id: string
+  name: string
+  email: string
+  color: string
 
   // Predefined set of distinct colors that work well for UI elements
   private static colorPalette = [
@@ -64,7 +86,7 @@ export class Recipient {
     "#059669", // Green
     "#d946ef", // Fuchsia
     "#6d28d9", // Purple
-  ];
+  ]
 
   /**
    * Generates a random color from the color palette
@@ -72,8 +94,8 @@ export class Recipient {
    * @returns A color string from the palette
    */
   private static getRandomColor(): string {
-    const randomIndex = Math.floor(Math.random() * this.colorPalette.length);
-    return this.colorPalette[randomIndex];
+    const randomIndex = Math.floor(Math.random() * this.colorPalette.length)
+    return this.colorPalette[randomIndex]
   }
 
   /**
@@ -82,17 +104,15 @@ export class Recipient {
    * @param params - The recipient parameters
    */
   constructor(params: {
-    id?: string;
-    name: string;
-    email?: string;
-    color?: string;
+    id?: string
+    name: string
+    email?: string
+    color?: string
   }) {
-    this.id =
-      params.id ||
-      `recipient-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-    this.name = params.name.trim();
-    this.email = (params.email || "").trim();
-    this.color = params.color || Recipient.getRandomColor();
+    this.id = params.id || `recipient-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+    this.name = params.name.trim()
+    this.email = (params.email || "").trim()
+    this.color = params.color || Recipient.getRandomColor()
   }
 
   /**
@@ -101,7 +121,7 @@ export class Recipient {
    * @returns The formatted name with email if available
    */
   getDisplayName(): string {
-    return this.email ? `${this.name} <${this.email}>` : this.name;
+    return this.email ? `${this.name} <${this.email}>` : this.name
   }
 
   /**
@@ -110,7 +130,7 @@ export class Recipient {
    * @returns True if the recipient is valid
    */
   isValid(): boolean {
-    return Boolean(this.name && this.id);
+    return Boolean(this.name && this.id)
   }
 
   /**
@@ -119,9 +139,9 @@ export class Recipient {
    * @returns True if the email is valid or empty
    */
   hasValidEmail(): boolean {
-    if (!this.email) return true; // Empty email is considered valid
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(this.email);
+    if (!this.email) return true // Empty email is considered valid
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(this.email)
   }
 
   /**
@@ -131,10 +151,10 @@ export class Recipient {
    * @returns The updated recipient instance
    */
   update(updates: Partial<Omit<Recipient, "id">>): Recipient {
-    if (updates.name) this.name = updates.name.trim();
-    if (updates.email !== undefined) this.email = updates.email.trim();
-    if (updates.color) this.color = updates.color;
-    return this;
+    if (updates.name) this.name = updates.name.trim()
+    if (updates.email !== undefined) this.email = updates.email.trim()
+    if (updates.color) this.color = updates.color
+    return this
   }
 
   /**
@@ -148,7 +168,7 @@ export class Recipient {
       name: this.name,
       email: this.email,
       color: this.color,
-    });
+    })
   }
 
   /**
@@ -163,7 +183,7 @@ export class Recipient {
       name: this.name,
       email: this.email,
       color: this.color,
-    };
+    }
   }
 
   /**
@@ -179,25 +199,7 @@ export class Recipient {
       name: data.name,
       email: data.email,
       color: data.color,
-    });
+    })
   }
 }
 
-export interface EditorState {
-  fields: Field[];
-  pdfFile: Blob | null;
-  selectedFieldId: string | null;
-  recipients: Recipient[];
-  currentRecipient: string | null;
-  scale: number;
-  isDragging: boolean;
-  isResizing: boolean;
-}
-
-export type FieldTemplate = {
-  type: FieldType;
-  icon: LucideIcon;
-  label: string;
-  defaultSize: FieldSize;
-  category: "basic" | "advanced";
-};

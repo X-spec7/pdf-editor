@@ -14,7 +14,7 @@ export const FieldValueEditor: React.FC = () => {
 
   const selectedField = fields.find((field) => field.id === selectedFieldId)
 
-  if (!selectedField) {
+  if (!selectedField || selectedField.type === "text") {
     return null
   }
 

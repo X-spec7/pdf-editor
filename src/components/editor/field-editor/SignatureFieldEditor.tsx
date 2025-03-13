@@ -1,16 +1,29 @@
 import type React from "react"
-import { useRef, useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import type { Field } from "@/types/pdf-editor"
-import { useEditorStore } from "@/store/useEditorStore"
 import { toast } from "sonner"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
+import { useRef, useState, useEffect } from "react"
 import { Eraser, Trash2, Undo } from "lucide-react"
 import SignatureCanvas from "react-signature-canvas"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+
 import { handwritingFonts } from "@/fonts"
+import { Button } from "@/components/ui/button"
+import type { Field } from "@/types/pdf-editor"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { useEditorStore } from "@/store/useEditorStore"
+
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger
+} from "@/components/ui/tabs"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select"
 
 interface SignatureFieldEditorProps {
   field: Field

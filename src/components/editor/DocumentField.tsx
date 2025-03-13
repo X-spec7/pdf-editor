@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useState, useRef } from "react"
 import { memo } from "react"
 import { Rnd } from "react-rnd"
 
@@ -6,6 +6,8 @@ import { useEditorStore } from "@/store/useEditorStore"
 import { useUserStore } from "@/store/useUserStore"
 import { FieldTypeIcon } from "./FieldTypeIcon"
 import { MINIMUM_FIELD_HEIGHT, MINIMUM_FIELD_WIDTH } from "@/constants"
+import { TextFormatToolbar } from "./TextFormatToolbar"
+import { AutoResizeTextarea } from "../ui/auto-resize-textarea"
 
 interface DocumentFieldProps {
   fieldId: string
@@ -33,6 +35,11 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
   // Get scale as a primitive value
   const scale = useEditorStore((state) => state.scale)
 
+  // State for direct editing
+  const [isEditing, setIsEditing] = useState(false)
+  const [showToolbar, setShowToolbar] = useState(false)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
   // If field is not found, don't render anything
   if (!field || !recipient) return null
 
@@ -45,8 +52,60 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
     ))
   }
 
+  // Handle text change
+  const handleTextChange = (value: string) => {
+    updateField({
+      id: fieldId,
+      value: value,
+    })
+  }
+
+  // Handle focus
+  const handleFocus = () => {
+    selectField(fieldId)
+    setIsEditing(true)
+    setShowToolbar(true)
+  }
+
+  // Handle blur
+  const handleBlur = () => {
+    setIsEditing(false)
+  }
+
+  // Apply font styling
+  const getTextStyle = () => {
+    return {
+      fontFamily: field.fontFamily || "inherit",
+      fontSize: field.fontSize ? `${field.fontSize}px` : "inherit",
+      color: field.fontColor || "inherit",
+      fontWeight: field.fontWeight || "inherit",
+      fontStyle: field.fontStyle || "inherit",
+    }
+  }
+
   // Render field content based on field type and value
   const renderFieldContent = () => {
+    if (field.type === "text" && userType === "signer") {
+      // Direct editing for text fields in signer mode
+      return (
+        <div className="relative w-full">
+          {showToolbar && isSelected && (
+            <TextFormatToolbar
+              fieldId={fieldId}
+              onClose={() => setShowToolbar(false)}
+            />
+          )}
+
+          <AutoResizeTextarea
+            onChange={handleTextChange}
+            style={getTextStyle()}
+            handleBlur={handleBlur}
+            handleFocus={handleFocus}
+          />
+        </div>
+      )
+    }
+
     if (!field.value || userType === "creator") {
       // Default content when no value is present
       return (
@@ -71,14 +130,18 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
               width: "100%",
               height: "100%",
               display: "flex",
-              alignItems: field.value.includes('\n') ? "flex-start" : "center",
+              alignItems: field.value.includes("\n") ? "flex-start" : "center",
               padding: "4px",
               backgroundColor: "rgba(255, 255, 255, 0.7)",
               borderRadius: "2px",
               overflow: "auto",
               textOverflow: "ellipsis",
-              fontSize: "14px",
+              fontSize: field.fontSize ? `${field.fontSize}px` : "14px",
               lineHeight: "1.4",
+              fontFamily: field.fontFamily || "inherit",
+              color: field.fontColor || "inherit",
+              fontWeight: field.fontWeight || "inherit",
+              fontStyle: field.fontStyle || "inherit",
             }}
           >
             {formatMultilineText(field.value)}
@@ -107,7 +170,8 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
           // Render text signature
           return (
             <div className="flex items-center justify-start text-black/70 w-full h-full rounded-sm p-1">
-              <span className={`${field.type === "signature" ? 'text-lg' : 'text-base'}`}
+              <span
+                className={`${field.type === "signature" ? "text-lg" : "text-base"}`}
                 style={{
                   fontFamily: field.fontFamily || "cursive",
                 }}
@@ -121,11 +185,7 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
         return (
           <div className="flex items-center justify-start text-black/50 w-full h-full rounded-sm p-1">
             <FieldTypeIcon type={field.type} />
-            {field.label && (
-              <span className="ml-1 text-xs">
-                {field.label}
-              </span>
-            )}
+            {field.label && <span className="ml-1 text-xs">{field.label}</span>}
           </div>
         )
     }
@@ -135,12 +195,10 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
   if (userType === "signer") {
     return (
       <div
-        className="absolute z-20 rounded-sm bg-transparent px-3 py-2"
+        className="absolute z-20 rounded-sm bg-transparent px-2"
         style={{
           left: Math.round(field.position.x * scale),
           top: Math.round(field.position.y * scale),
-          // width: Math.round(field.size.width * scale),
-          // height: Math.round(field.size.height * scale),
           border: isSelected ? `1px solid ${recipient.color}` : `2px dashed ${recipient.color}`,
           boxShadow: isSelected ? `0 0 0 1px ${recipient.color}, 0 0 8px rgba(0, 0, 0, 0.1)` : "none",
           transition: "box-shadow 0.2s ease",
