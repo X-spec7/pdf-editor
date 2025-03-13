@@ -24,12 +24,9 @@ export const TextFieldEditor: React.FC<TextFieldEditorProps> = ({ field, onClose
 
   // Font families
   const fontFamilies = [
-    { name: "Default", value: "inherit" },
-    { name: "Arial", value: "Arial, sans-serif" },
     { name: "Times New Roman", value: "Times New Roman, serif" },
     { name: "Courier New", value: "Courier New, monospace" },
-    { name: "Georgia", value: "Georgia, serif" },
-    { name: "Verdana", value: "Verdana, sans-serif" },
+    { name: "Helvetica", value: "Helvetica, sans-serif" },
   ]
 
   // Font sizes
