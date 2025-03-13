@@ -161,7 +161,7 @@ export const SignatureFieldEditor: React.FC<SignatureFieldEditorProps> = ({ fiel
 
             <div className="border rounded-md p-4 min-h-[100px] flex items-center justify-center">
               {inputValue ? (
-                <p className="text-xl" style={{ fontFamily: selectedFont }}>
+                <p className="text-3xl" style={{ fontFamily: selectedFont }}>
                   {inputValue}
                 </p>
               ) : (
