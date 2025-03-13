@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react"
+import React, { useState } from "react"
 import { memo } from "react"
 import { Rnd } from "react-rnd"
 
@@ -87,11 +87,22 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
         return "Sign Here"
       case "date":
         return "Date Here"
+      case "text":
+        return "Text Here"
     }
   }
 
   // Render field content based on field type and value
   const renderFieldContent = () => {
+    if (!field.value && !isSelected && field.type === "text") {
+      return (
+        <div className="flex items-center justify-center w-full h-full bg-white/50 rounded-sm pointer-events-none p-1">
+          <FieldTypeIcon type={field.type} />
+          <span className="ml-1 text-xs">{getFieldLabel(field.type)}</span>
+        </div>
+      )
+    }
+
     if (field.type === "text" && userType === "signer") {
       // Direct editing for text fields in signer mode
       return (
@@ -108,26 +119,13 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
             style={getTextStyle()}
             handleBlur={handleBlur}
             handleFocus={handleFocus}
+            autoFocus
           />
         </div>
       )
     }
 
-    if (!field.value && userType === "creator") {
-      // Default content when no value is present
-      return (
-        <div className="flex items-center justify-center w-full h-full bg-white/50 rounded-sm pointer-events-none p-1">
-          <FieldTypeIcon type={field.type} />
-          {field.label && (
-            <span className="" style={{ marginLeft: "4px", fontSize: "12px" }}>
-              {field.label}
-            </span>
-          )}
-        </div>
-      )
-    }
-
-    if (!field.value) {
+    if (!field.value || !isSelected) {
       return (
         <div className="flex items-center justify-center w-full h-full bg-white/50 rounded-sm pointer-events-none p-1">
           <FieldTypeIcon type={field.type} />

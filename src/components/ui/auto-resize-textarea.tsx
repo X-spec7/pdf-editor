@@ -12,6 +12,7 @@ interface AutoResizeTextareaProps {
   style?: React.CSSProperties
   handleFocus?: () => void
   handleBlur?: () => void
+  autoFocus?: boolean
 }
 
 export const AutoResizeTextarea = ({
@@ -25,6 +26,7 @@ export const AutoResizeTextarea = ({
   style = {},
   handleFocus,
   handleBlur,
+  autoFocus = false,
 }: AutoResizeTextareaProps) => {
   const [value, setValue] = useState(initialValue)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -91,6 +93,13 @@ export const AutoResizeTextarea = ({
     }, 0)
     return () => clearTimeout(timer)
   }, [style])
+
+  // Focus the textarea when component mounts if autoFocus is true
+  useEffect(() => {
+    if (autoFocus && textareaRef.current) {
+      textareaRef.current.focus()
+    }
+  }, [autoFocus])
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value
