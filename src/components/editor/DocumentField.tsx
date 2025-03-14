@@ -127,7 +127,7 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
 
     if (!field.value) {
       return (
-        <div className="flex items-center justify-center bg-white/50 rounded-sm pointer-events-none p-2">
+        <div className="flex items-center justify-center bg-white/50 rounded-sm cursor-pointer p-2">
           <FieldTypeIcon type={field.type} />
           <span className="ml-1 text-xs">{getFieldLabel(field.type)}</span>
         </div>
