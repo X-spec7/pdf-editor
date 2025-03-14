@@ -31,6 +31,10 @@ export const PDFEditor: React.FC = () => {
       {selectedFieldId && userType === "creator" && (
         <FieldProperties />
       )}
+
+      {selectedFieldId && userType === "signer" && (
+        <FieldValueEditor />
+      )}
     </div>
   )
 }

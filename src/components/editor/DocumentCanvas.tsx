@@ -69,15 +69,8 @@ export const DocumentCanvas: React.FC = memo(() => {
           </Document>
         )}
       </div>
+
       
-      {/* Field value editor overlay - only shown for signer mode when a field is selected */}
-      {selectedFieldId && userType === "signer" && (
-        <div className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none">
-          <div className="pointer-events-auto">
-            <FieldValueEditor />
-          </div>
-        </div>
-      )}
     </div>
   );
 });
