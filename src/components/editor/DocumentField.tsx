@@ -2,12 +2,12 @@ import React, { useState } from "react"
 import { memo } from "react"
 import { Rnd } from "react-rnd"
 
-import { useEditorStore } from "@/store/useEditorStore"
-import { useUserStore } from "@/store/useUserStore"
 import { FieldTypeIcon } from "./FieldTypeIcon"
-import { MINIMUM_FIELD_HEIGHT, MINIMUM_FIELD_WIDTH } from "@/constants"
 import { TextFormatToolbar } from "./TextFormatToolbar"
 import { AutoResizeTextarea } from "../ui/auto-resize-textarea"
+import { useEditorStore } from "@/store/useEditorStore"
+import { useUserStore } from "@/store/useUserStore"
+import { MINIMUM_FIELD_HEIGHT, MINIMUM_FIELD_WIDTH } from "@/constants"
 
 interface DocumentFieldProps {
   fieldId: string
@@ -94,19 +94,19 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
 
   // Render field content based on field type and value
   const renderFieldContent = () => {
-    if (!field.value && !isSelected && field.type === "text") {
+    if (userType === "creator") {
       return (
-        <div className="flex items-center justify-center w-full h-full bg-white/50 rounded-sm pointer-events-none p-1">
+        <div className="flex items-center justify-center bg-white/50 rounded-sm pointer-events-none p-2">
           <FieldTypeIcon type={field.type} />
           <span className="ml-1 text-xs">{getFieldLabel(field.type)}</span>
         </div>
       )
     }
 
-    if (field.type === "text" && userType === "signer") {
+    if (field.type === "text" && userType === "signer" && isSelected) {
       // Direct editing for text fields in signer mode
       return (
-        <div className="relative w-full">
+        <div className="relative w-full cursor-pointer">
           {showToolbar && isSelected && (
             <TextFormatToolbar
               fieldId={fieldId}
@@ -125,9 +125,9 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
       )
     }
 
-    if (!field.value || !isSelected) {
+    if (!field.value) {
       return (
-        <div className="flex items-center justify-center w-full h-full bg-white/50 rounded-sm pointer-events-none p-1">
+        <div className="flex items-center justify-center bg-white/50 rounded-sm pointer-events-none p-2">
           <FieldTypeIcon type={field.type} />
           <span className="ml-1 text-xs">{getFieldLabel(field.type)}</span>
         </div>
@@ -156,6 +156,7 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
               color: field.fontColor || "inherit",
               fontWeight: field.fontWeight || "inherit",
               fontStyle: field.fontStyle || "inherit",
+              cursor: "pointer",
             }}
           >
             {formatMultilineText(field.value)}
@@ -163,7 +164,7 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
         )
       case "date":
         return (
-          <div className="flex items-center w-full h-full rounded-sm p-1 bg-white/70">
+          <div className="flex items-center w-full h-full rounded-sm p-1 bg-white/70 cursor-pointer">
             <span style={{ fontSize: "14px" }}>{new Date(field.value).toLocaleDateString()}</span>
           </div>
         )
@@ -173,7 +174,7 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
           // Render image signature
           return (
             <div
-              className="flex justify-start items-center bg-white/70 rounded-sm p-1"
+              className="flex justify-start items-center bg-white/70 rounded-sm p-1 cursor-pointer"
               style={{
                 width: field.size.width,
                 height: field.size.height,
@@ -189,7 +190,7 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
         } else {
           // Render text signature
           return (
-            <div className="flex items-center justify-start text-black/70 w-full h-full rounded-sm p-1">
+            <div className="flex items-center justify-start text-black/70 w-full h-full rounded-sm p-1 cursor-pointer">
               <span
                 className={`${field.type === "signature" ? "text-lg" : "text-base"}`}
                 style={{
@@ -203,7 +204,7 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
         }
       default:
         return (
-          <div className="flex items-center justify-start text-black/50 w-full h-full rounded-sm p-1">
+          <div className="flex items-center justify-start text-black/50 rounded-sm p-2">
             <FieldTypeIcon type={field.type} />
             <span className="ml-1 text-xs">{getFieldLabel(field.type)}</span>
           </div>
