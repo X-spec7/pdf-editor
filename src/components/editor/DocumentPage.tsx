@@ -5,6 +5,7 @@ import { DocumentField } from "./DocumentField";
 
 import { useEditorStore } from "@/store/useEditorStore";
 import { FieldPosition, FieldType } from "@/types/pdf-editor";
+import { DEFAULT_PDF_WIDTH } from "@/constants";
 
 interface DocumentPageProps {
   pageIndex: number;
@@ -41,8 +42,8 @@ export const DocumentPage: React.FC<DocumentPageProps> = memo(({
     // TODO: update to switch statement in case of covering all field types
     const newFieldSize =
       fieldType === "signature" || fieldType === "initials"
-        ? { width: 200, height: 70 }
-        : { width: 150, height: 40 };
+        ? { width: 100, height: 40 }
+        : { width: 120, height: 40 };
 
     const pageRect = pageRef.current.getBoundingClientRect();
     const x = e.clientX - pageRect.left - newFieldSize.width / 2;
@@ -63,12 +64,12 @@ export const DocumentPage: React.FC<DocumentPageProps> = memo(({
   return (
     <div
       ref={pageRef}
-      className="relative z-0"
+      className="relative z-0 shadow-2xl"
       onDragOver={(e) => e.preventDefault()}
       onDrop={handleDrop}
     >
       <Page
-        width={1000}
+        width={DEFAULT_PDF_WIDTH}
         pageNumber={pageIndex}
         scale={scale}
         renderTextLayer={true}

@@ -10,6 +10,8 @@ import { useEditorKeyboardShortcuts } from "@/hooks/useEditorKeyboardShortcuts";
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 import { PDFDocumentProxy } from "pdfjs-dist/types/src/display/api";
+import { FieldValueEditor } from "./FieldValueEditor";
+import { useUserStore } from "@/store/useUserStore";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   'pdfjs-dist/build/pdf.worker.min.mjs',
@@ -28,6 +30,8 @@ export const DocumentCanvas: React.FC = memo(() => {
   const pdfFile = useEditorStore((state) => state.pdfFile)
   const scale = useEditorStore((state) => state.scale);
   const selectField = useEditorStore((state) => state.selectField);
+  const selectedFieldId = useEditorStore((state) => state.selectedFieldId)
+  const userType = useUserStore((state) => state.userType)
 
   // Initialize keyboard shortcuts
   useEditorKeyboardShortcuts();
@@ -65,6 +69,8 @@ export const DocumentCanvas: React.FC = memo(() => {
           </Document>
         )}
       </div>
+
+      
     </div>
   );
 });

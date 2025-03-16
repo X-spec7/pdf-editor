@@ -1,9 +1,77 @@
-import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
-import { Field, FieldType } from "@/types/pdf-editor";
-import { toast } from "sonner";
+import { toast } from "sonner"
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib"
+
+import type { Field, FieldType } from "@/types/pdf-editor"
+import { DEFAULT_PDF_WIDTH } from "@/constants"
 import fontkit from "@pdf-lib/fontkit"
 
-const PX_TO_PT = 0.75;
+const PX_TO_PT = 0.75
+
+// Font cache to avoid reloading fonts
+const fontCache: Record<string, ArrayBuffer> = {}
+
+/**
+ * Converts a hex color string to RGB values for PDF-lib
+ *
+ * @param hex - Hex color string (e.g., "#FF0000")
+ * @returns RGB color object for PDF-lib
+ */
+function rgbFromHex(hex: string): ReturnType<typeof rgb> {
+  // Remove # if present
+  hex = hex.replace("#", "")
+
+  // Parse the hex values
+  const r = Number.parseInt(hex.substring(0, 2), 16) / 255
+  const g = Number.parseInt(hex.substring(2, 4), 16) / 255
+  const b = Number.parseInt(hex.substring(4, 6), 16) / 255
+
+  return rgb(r, g, b)
+}
+
+/**
+ * Loads a font file and caches it
+ *
+ * @param fontPath - Path to the font file
+ * @returns Promise resolving to the font data as ArrayBuffer
+ */
+async function loadFont(fontPath: string): Promise<ArrayBuffer> {
+  // Check cache first
+  if (fontCache[fontPath]) {
+    return fontCache[fontPath]
+  }
+
+  try {
+    const response = await fetch(fontPath)
+    if (!response.ok) {
+      throw new Error(`Failed to load font: ${response.statusText}`)
+    }
+
+    const fontData = await response.arrayBuffer()
+    fontCache[fontPath] = fontData
+    return fontData
+  } catch (error) {
+    console.error("Error loading font:", error)
+    throw error
+  }
+}
+
+/**
+ * Maps a font family name to a font file path
+ *
+ * @param fontFamily - The CSS font-family value
+ * @returns The path to the font file or null if not found
+ */
+function getFontPath(fontFamily: string): string | null {
+  const primaryFont = fontFamily.split(",")[0].trim()
+
+  const fontMap: Record<string, string> = {
+    Bastliga: "/src/fonts/bastliga.otf",
+    CentralWell: "/src/fonts/centralwell.ttf",
+    DancingFont: "/src/fonts/dancing.ttf",
+  }
+
+  return fontMap[primaryFont] || null
+}
 
 /**
  * Converts app field type to PDF-lib field type
@@ -14,7 +82,7 @@ const PX_TO_PT = 0.75;
 const mapFieldType = (fieldType: FieldType): string | null => {
   switch (fieldType) {
     case "text":
-      return "text";
+      return "text"
     // case "checkbox":
     //   return "checkbox";
     // case "radio":
@@ -23,13 +91,13 @@ const mapFieldType = (fieldType: FieldType): string | null => {
     //   return "dropdown";
     case "signature":
     case "initials":
-      return "signature";
+      return "signature"
     case "date":
-      return "text"; // Date fields are text fields with special formatting
+      return "date" // Date fields are text fields with special formatting
     default:
-      return null; // Some field types might not have direct equivalents
+      return null // Some field types might not have direct equivalents
   }
-};
+}
 
 /**
  * Exports the current PDF with form fields
@@ -38,98 +106,165 @@ const mapFieldType = (fieldType: FieldType): string | null => {
  * @param fields - The fields to add to the PDF
  * @returns A promise that resolves when the PDF is exported
  */
-export async function exportPdfWithFields(
-  pdfBlob: Blob,
-  filename: string,
-  fields: Field[],
-): Promise<void> {
+export async function exportPdfWithFields(pdfBlob: Blob, filename: string, fields: Field[]): Promise<void> {
   try {
-    const pdfDoc = await PDFDocument.load(await pdfBlob.arrayBuffer());
+    const pdfDoc = await PDFDocument.load(await pdfBlob.arrayBuffer())
 
-    pdfDoc.registerFontkit(fontkit);
+    pdfDoc.registerFontkit(fontkit)
+
+    // Load the default font
     const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const helveticaBoldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    const helveticaItalicFont = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
+    const helveticaBoldItalicFont = await pdfDoc.embedFont(StandardFonts.HelveticaBoldOblique);
+
+    const timesRomanFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
+    const timesRomanBoldFont = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
+    const timesRomanItalicFont = await pdfDoc.embedFont(StandardFonts.TimesRomanItalic);
+    const timesRomanBoldItalicFont = await pdfDoc.embedFont(StandardFonts.TimesRomanBoldItalic);
+
+    const courierFont = await pdfDoc.embedFont(StandardFonts.Courier);
+    const courierBoldFont = await pdfDoc.embedFont(StandardFonts.CourierBold);
+    const courierItalicFont = await pdfDoc.embedFont(StandardFonts.CourierOblique);
+    const courierBoldItalicFont = await pdfDoc.embedFont(StandardFonts.CourierBoldOblique);
+
+
+    const fontUrl = "/src/fonts/dancing.ttf"
+    const dancingFontBytes = await fetch(fontUrl).then((res) => res.arrayBuffer())
+    const dancingFont = await pdfDoc.embedFont(dancingFontBytes, { subset: true })
 
     // Get the pages
-    const pages = pdfDoc.getPages();
-
-    console.log('pages check: ', pages)
+    const pages = pdfDoc.getPages()
 
     // Add each field to the PDF
     for (const field of fields) {
-      const pdfType = mapFieldType(field.type);
-      if (!pdfType) continue; // Skip unsupported field types
-      if (!field.value) continue; //Skip for fields of which value is missing
+      const pdfType = mapFieldType(field.type)
+      if (!pdfType) continue // Skip unsupported field types
+      if (!field.value) continue //Skip for fields of which value is missing
 
-      console.log('page index check: ', field.position.pageIndex)
       // Get the page for this field
-      const page = pages[field.position.pageIndex - 1];
-      if (!page) continue;
+      const page = pages[field.position.pageIndex - 1]
+      if (!page) continue
 
       // Get page dimensions
-      const { width, height } = page.getSize();
+      const { width, height } = page.getSize()
+
+      const scaleFactor = width / DEFAULT_PDF_WIDTH
 
       // Convert coordinates (PDF coordinate system has origin at bottom-left)
-      const x = field.position.x;
-      const y = height - field.position.y - field.size.height / 2 + helveticaFont.heightAtSize(12, {descender: true}) / 2;
+      const x = field.position.x * scaleFactor
+      const y =
+        height -
+        field.position.y * scaleFactor -
+        field.size.height / 2 +
+        helveticaFont.heightAtSize(12, { descender: true }) / 2
 
       try {
         switch (pdfType) {
           case "text": {
-            // Add text field
-            page.drawText(field.value, {
-              x,
-              y,
-              font: helveticaFont,
-              size: 12 * PX_TO_PT,
-              color: rgb(0, 0, 0)
-            });
+            const font = await selectFontForField(pdfDoc, field)
+            let currentY = y -
+              helveticaFont.heightAtSize(12, { descender: true }) / 2 +
+              font.heightAtSize(field.fontSize || 12, { descender: true }) / 2
 
-            break;
+
+            // Handle multi-line text
+            if (field.value.includes("\n")) {
+              const lines = field.value.split("\n")
+              const fontSize = (field.fontSize || 12) * PX_TO_PT
+              const lineHeight = helveticaFont.heightAtSize(fontSize) * 1.2
+
+              // Draw each line of text
+              for (let i = 0; i < lines.length; i++) {
+                if (lines[i].trim() === "") {
+                  // Just move down for empty lines
+                  currentY -= lineHeight
+                  continue
+                }
+
+                page.drawText(lines[i], {
+                  x,
+                  y: currentY,
+                  font: font,
+                  size: fontSize,
+                  color: field.fontColor ? rgbFromHex(field.fontColor) : rgb(0, 0, 0),
+                })
+
+                // Move down for the next line
+                currentY -= lineHeight
+              }
+            } else {
+              // Single line text
+              page.drawText(field.value, {
+                x,
+                y: currentY,
+                font: font,
+                size: (field.fontSize || 12) * PX_TO_PT,
+                color: field.fontColor ? rgbFromHex(field.fontColor) : rgb(0, 0, 0),
+              })
+            }
+            break
           }
-          
+
           case "date": {
             // Add date field
-            const dateValue = new Date(field.value).toLocaleDateString();
+            const dateValue = new Date(field.value).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })
 
             page.drawText(dateValue, {
               x,
               y,
               size: 12 * PX_TO_PT,
               font: helveticaFont,
-              color: rgb(0, 0, 0)
-            });
+              color: rgb(0, 0, 0),
+            })
 
-            break;
+            break
           }
 
-          case "signature":
+          case "signature": {
             if (field.value.startsWith("data:image")) {
-              // Handle drawed signature
+              // Handle drawn signature
               try {
                 const signatureBytes = await fetch(field.value).then((res) => res.arrayBuffer())
                 const signatureImage = await pdfDoc.embedPng(signatureBytes)
-                const signatureDims = signatureImage.scale((field.size.width) / signatureImage.width)
+                const signatureDims = signatureImage.scale((field.size.width * scaleFactor) / signatureImage.width)
 
                 page.drawImage(signatureImage, {
                   x,
-                  y: y - signatureDims.height + helveticaFont.heightAtSize(12, {descender: true}) + 4,
-                  width: signatureDims.width,
-                  height: signatureDims.height,
+                  y:
+                    y -
+                    signatureDims.height +
+                    field.size.height / 2 -
+                    helveticaFont.heightAtSize(12, { descender: true }) / 2,
+                  width: signatureDims.width * scaleFactor,
+                  height: signatureDims.height * scaleFactor,
                 })
               } catch (error) {
                 console.error("Error embedding signature image: ", error)
               }
             } else {
-              // Handle typed signature
+              // Handle typed signature with custom font if available
+              const font = helveticaFont
+              const fontSize = 18 * PX_TO_PT
+
+              // Calculate vertical position adjustment for the font
+              const fontHeight = font.heightAtSize(fontSize, { descender: true })
+              const yPos = y + fontHeight / 2 - helveticaFont.heightAtSize(12, { descender: true }) / 2
 
               page.drawText(field.value, {
                 x,
-                y: y - helveticaFont.heightAtSize(12, {descender: true}) / 2 + helveticaFont.heightAtSize(18, {descender: true}) / 2,
-                size: 18 * PX_TO_PT,
-                font: helveticaFont,
-                color: rgb(0, 0, 0)
+                y: yPos,
+                size: fontSize,
+                font: dancingFont,
+                color: rgb(0, 0, 0),
               })
             }
+            break
+          }
 
           // case "checkbox": {
           //   // Create a checkbox field
@@ -224,7 +359,7 @@ export async function exportPdfWithFields(
           // }
         }
       } catch (fieldError) {
-        console.error(`Error adding field ${field.id}:`, fieldError);
+        console.error(`Error adding field ${field.id}:`, fieldError)
         // Continue with other fields even if one fails
       }
     }
@@ -232,24 +367,110 @@ export async function exportPdfWithFields(
     // Save the PDF
     const modifiedPdfBytes = await pdfDoc.save({
       updateFieldAppearances: true, // Important for ensuring fields appear correctly
-    });
+    })
 
     // Create a blob from the PDF data
-    const blob = new Blob([modifiedPdfBytes], { type: "application/pdf" });
+    const blob = new Blob([modifiedPdfBytes], { type: "application/pdf" })
 
     // Create a download link
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = filename.endsWith(".pdf") ? filename : `${filename}.pdf`;
-    link.click();
+    const link = document.createElement("a")
+    link.href = URL.createObjectURL(blob)
+    link.download = filename.endsWith(".pdf") ? filename : `${filename}.pdf`
+    link.click()
 
     // Clean up
-    URL.revokeObjectURL(link.href);
+    URL.revokeObjectURL(link.href)
 
-    toast.success("PDF exported successfully with interactive form fields");
-    return;
+    toast.success("PDF exported successfully with interactive form fields")
+    return
   } catch (error) {
-    console.error("Error exporting PDF:", error);
-    throw error;
+    console.error("Error exporting PDF:", error)
+    throw error
   }
 }
+
+
+/**
+ * Selects the appropriate font based on font family, weight, and style
+ *
+ * @param pdfDoc - The PDF document
+ * @param field - The field with font properties
+ * @returns The appropriate font for the field
+ */
+async function selectFontForField(pdfDoc: PDFDocument, field: Field) {
+  // Default to Helvetica if no font family is specified
+  const fontFamily = field.fontFamily || "inherit"
+  const isBold = field.fontWeight === "bold"
+  const isItalic = field.fontStyle === "italic"
+
+  // Check for specific font families
+  if (fontFamily.includes("Arial") || fontFamily === "inherit" || fontFamily.includes("sans-serif")) {
+    // Arial/Helvetica family
+    if (isBold && isItalic) {
+      return await pdfDoc.embedFont(StandardFonts.HelveticaBoldOblique)
+    } else if (isBold) {
+      return await pdfDoc.embedFont(StandardFonts.HelveticaBold)
+    } else if (isItalic) {
+      return await pdfDoc.embedFont(StandardFonts.HelveticaOblique)
+    } else {
+      return await pdfDoc.embedFont(StandardFonts.Helvetica)
+    }
+  } else if (fontFamily.includes("Times") || fontFamily.includes("serif")) {
+    // Times Roman family
+    if (isBold && isItalic) {
+      return await pdfDoc.embedFont(StandardFonts.TimesRomanBoldItalic)
+    } else if (isBold) {
+      return await pdfDoc.embedFont(StandardFonts.TimesRomanBold)
+    } else if (isItalic) {
+      return await pdfDoc.embedFont(StandardFonts.TimesRomanItalic)
+    } else {
+      return await pdfDoc.embedFont(StandardFonts.TimesRoman)
+    }
+  } else if (fontFamily.includes("Courier") || fontFamily.includes("monospace")) {
+    // Courier family
+    if (isBold && isItalic) {
+      return await pdfDoc.embedFont(StandardFonts.CourierBoldOblique)
+    } else if (isBold) {
+      return await pdfDoc.embedFont(StandardFonts.CourierBold)
+    } else if (isItalic) {
+      return await pdfDoc.embedFont(StandardFonts.CourierOblique)
+    } else {
+      return await pdfDoc.embedFont(StandardFonts.Courier)
+    }
+  } else if (fontFamily.includes("Georgia")) {
+    // Georgia is similar to Times Roman
+    if (isBold && isItalic) {
+      return await pdfDoc.embedFont(StandardFonts.TimesRomanBoldItalic)
+    } else if (isBold) {
+      return await pdfDoc.embedFont(StandardFonts.TimesRomanBold)
+    } else if (isItalic) {
+      return await pdfDoc.embedFont(StandardFonts.TimesRomanItalic)
+    } else {
+      return await pdfDoc.embedFont(StandardFonts.TimesRoman)
+    }
+  } else if (fontFamily.includes("Verdana")) {
+    // Verdana is similar to Helvetica
+    if (isBold && isItalic) {
+      return await pdfDoc.embedFont(StandardFonts.HelveticaBoldOblique)
+    } else if (isBold) {
+      return await pdfDoc.embedFont(StandardFonts.HelveticaBold)
+    } else if (isItalic) {
+      return await pdfDoc.embedFont(StandardFonts.HelveticaOblique)
+    } else {
+      return await pdfDoc.embedFont(StandardFonts.Helvetica)
+    }
+  }
+
+  // For custom fonts or unrecognized fonts, fall back to Helvetica
+  if (isBold && isItalic) {
+    return await pdfDoc.embedFont(StandardFonts.HelveticaBoldOblique)
+  } else if (isBold) {
+    return await pdfDoc.embedFont(StandardFonts.HelveticaBold)
+  } else if (isItalic) {
+    return await pdfDoc.embedFont(StandardFonts.HelveticaOblique)
+  } else {
+    return await pdfDoc.embedFont(StandardFonts.Helvetica)
+  }
+}
+
+

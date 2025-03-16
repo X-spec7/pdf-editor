@@ -28,7 +28,13 @@ export const PDFEditor: React.FC = () => {
       </div>
 
       {/* Field properties/editor panel (shows when a field is selected) */}
-      {selectedFieldId && (userType === "creator" ? <FieldProperties /> : <FieldValueEditor />)}
+      {selectedFieldId && userType === "creator" && (
+        <FieldProperties />
+      )}
+
+      {selectedFieldId && userType === "signer" && (
+        <FieldValueEditor />
+      )}
     </div>
   )
 }

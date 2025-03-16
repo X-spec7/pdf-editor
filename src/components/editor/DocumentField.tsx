@@ -1,10 +1,13 @@
-import type React from "react"
+import React, { useState } from "react"
 import { memo } from "react"
+import { Rnd } from "react-rnd"
+
+import { FieldTypeIcon } from "./FieldTypeIcon"
+import { TextFormatToolbar } from "./TextFormatToolbar"
+import { AutoResizeTextarea } from "../ui/auto-resize-textarea"
 import { useEditorStore } from "@/store/useEditorStore"
 import { useUserStore } from "@/store/useUserStore"
-import { FieldTypeIcon } from "./FieldTypeIcon"
-import { Rnd } from "react-rnd"
-import { format } from "date-fns"
+import { MINIMUM_FIELD_HEIGHT, MINIMUM_FIELD_WIDTH } from "@/constants"
 
 interface DocumentFieldProps {
   fieldId: string
@@ -15,6 +18,9 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
   const field = useEditorStore((state) => state.fields.find((f) => f.id === fieldId))
 
   const isSelected = useEditorStore((state) => state.selectedFieldId === fieldId)
+
+  // Get user type to determine rendering mode
+  const userType = useUserStore((state) => state.userType)
 
   // Get recipient using a stable selector
   const recipient = useEditorStore((state) => {
@@ -29,189 +35,281 @@ export const DocumentField: React.FC<DocumentFieldProps> = memo(({ fieldId }) =>
   // Get scale as a primitive value
   const scale = useEditorStore((state) => state.scale)
 
-  // Get user type
-  const userType = useUserStore((state) => state.userType)
+  // State for direct editing
+  const [showToolbar, setShowToolbar] = useState(false)
 
   // If field is not found, don't render anything
   if (!field || !recipient) return null
 
-  // Common field content for both creator and signer with no value
-  const renderDefaultFieldContent = () => (
-    <div
-      className="field-content"
-      style={{
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "rgba(255, 255, 255, 0.5)",
-        borderRadius: "2px",
-        pointerEvents: "none",
-        padding: "4px",
-      }}
-    >
-      <FieldTypeIcon type={field.type} />
-      {field.label && (
-        <span className="field-label" style={{ marginLeft: "4px", fontSize: "12px" }}>
-          {field.label}
-        </span>
-      )}
-    </div>
-  )
+  const formatMultilineText = (text: string) => {
+    return text.split("\n").map((line, i) => (
+      <React.Fragment key={i}>
+        {line}
+        {i < text.split("\n").length - 1 && <br />}
+      </React.Fragment>
+    ))
+  }
 
-  // Render field value based on field type
-  const renderFieldValue = () => {
-    if (!field.value) return renderDefaultFieldContent()
+  // Handle text change
+  const handleTextChange = (value: string) => {
+    updateField({
+      id: fieldId,
+      value: value,
+    })
+  }
 
+  // Handle focus
+  const handleFocus = () => {
+    selectField(fieldId)
+    setShowToolbar(true)
+  }
+
+  // Handle blur
+  const handleBlur = () => {
+    // 
+  }
+
+  // Apply font styling
+  const getTextStyle = () => {
+    return {
+      fontFamily: field.fontFamily || "inherit",
+      fontSize: field.fontSize ? `${field.fontSize}px` : "inherit",
+      color: field.fontColor || "inherit",
+      fontWeight: field.fontWeight || "inherit",
+      fontStyle: field.fontStyle || "inherit",
+    }
+  }
+
+  const getFieldLabel = (fieldType: string) => {
+    switch (fieldType) {
+      case "signature":
+      case "initials":
+        return "Sign Here"
+      case "date":
+        return "Date Here"
+      case "text":
+        return "Text Here"
+    }
+  }
+
+  // Render field content based on field type and value
+  const renderFieldContent = () => {
+    if (userType === "creator") {
+      return (
+        <div className="flex items-center justify-center bg-white/50 rounded-sm pointer-events-none p-2">
+          <FieldTypeIcon type={field.type} />
+          <span className="ml-1 text-xs">{getFieldLabel(field.type)}</span>
+        </div>
+      )
+    }
+
+    if (field.type === "text" && userType === "signer" && isSelected) {
+      // Direct editing for text fields in signer mode
+      return (
+        <div className="relative w-full cursor-pointer">
+          {showToolbar && isSelected && (
+            <TextFormatToolbar
+              fieldId={fieldId}
+              onClose={() => setShowToolbar(false)}
+            />
+          )}
+
+          <AutoResizeTextarea
+            onChange={handleTextChange}
+            style={getTextStyle()}
+            handleBlur={handleBlur}
+            handleFocus={handleFocus}
+            autoFocus
+          />
+        </div>
+      )
+    }
+
+    if (!field.value) {
+      return (
+        <div className="flex items-center justify-center bg-white/50 rounded-sm cursor-pointer p-2">
+          <FieldTypeIcon type={field.type} />
+          <span className="ml-1 text-xs">{getFieldLabel(field.type)}</span>
+        </div>
+      )
+    }
+
+    // Render content based on field type when value is present
     switch (field.type) {
       case "text":
-        return <div className="w-full h-full flex items-center px-2 text-sm">{field.value}</div>
+        return (
+          <div
+            className="field-content"
+            style={{
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              alignItems: field.value.includes("\n") ? "flex-start" : "center",
+              padding: "4px",
+              backgroundColor: "rgba(255, 255, 255, 0.7)",
+              borderRadius: "2px",
+              overflow: "auto",
+              textOverflow: "ellipsis",
+              fontSize: field.fontSize ? `${field.fontSize}px` : "14px",
+              lineHeight: "1.4",
+              fontFamily: field.fontFamily || "inherit",
+              color: field.fontColor || "inherit",
+              fontWeight: field.fontWeight || "inherit",
+              fontStyle: field.fontStyle || "inherit",
+              cursor: "pointer",
+            }}
+          >
+            {formatMultilineText(field.value)}
+          </div>
+        )
       case "date":
-        try {
-          const date = new Date(field.value)
-          return <div className="w-full h-full flex items-center px-2 text-sm">{format(date, "MMM d, yyyy")}</div>
-        } catch (e) {
-          return renderDefaultFieldContent()
-        }
+        return (
+          <div className="flex items-center w-full h-full rounded-sm p-1 bg-white/70 cursor-pointer">
+            <span style={{ fontSize: "14px" }}>{new Date(field.value).toLocaleDateString()}</span>
+          </div>
+        )
       case "signature":
       case "initials":
         if (field.value.startsWith("data:image")) {
           // Render image signature
           return (
-            <div className="w-full h-full flex items-center justify-center">
+            <div
+              className="flex justify-start items-center bg-white/70 rounded-sm p-1 cursor-pointer"
+              style={{
+                width: field.size.width,
+                height: field.size.height,
+              }}
+            >
               <img
                 src={field.value || "/placeholder.svg"}
                 alt={field.type === "signature" ? "Signature" : "Initials"}
-                className="max-w-full max-h-full object-contain"
+                className="h-full object-contain"
               />
             </div>
           )
         } else {
           // Render text signature
           return (
-            <div
-              className="w-full h-full flex items-center justify-center text-lg"
-              style={{ fontFamily: field.fontFamily || "cursive" }}
-            >
-              {field.value}
+            <div className="flex items-center justify-start text-black/70 w-full h-full rounded-sm p-1 cursor-pointer">
+              <span
+                className={`${field.type === "signature" ? "text-lg" : "text-base"}`}
+                style={{
+                  fontFamily: field.fontFamily || "cursive",
+                }}
+              >
+                {field.value}
+              </span>
             </div>
           )
         }
       default:
-        return renderDefaultFieldContent()
+        return (
+          <div className="flex items-center justify-start text-black/50 rounded-sm p-2">
+            <FieldTypeIcon type={field.type} />
+            <span className="ml-1 text-xs">{getFieldLabel(field.type)}</span>
+          </div>
+        )
     }
   }
 
-  // For creator mode, use Rnd for draggable/resizable fields
-  if (userType === "creator") {
+  // For signer mode, render a non-draggable field
+  if (userType === "signer") {
     return (
-      <Rnd
-        onDragStop={(e, d) => {
-          updateField({
-            id: fieldId,
-            position: {
-              x: Math.round(d.x / scale),
-              y: Math.round(d.y / scale),
-              pageIndex: field.position.pageIndex,
-            },
-          })
-        }}
-        onResizeStop={(e, direction, ref, delta, position) => {
-          const newWidth = Number.parseFloat(ref.style.width)
-          const newHeight = Number.parseFloat(ref.style.height)
-
-          // Update both position and size, accounting for scale
-          updateField({
-            id: fieldId,
-            position: {
-              x: Math.round(position.x / scale),
-              y: Math.round(position.y / scale),
-              pageIndex: field.position.pageIndex,
-            },
-            size: {
-              width: Math.round(newWidth / scale),
-              height: Math.round(newHeight / scale),
-            },
-          })
-        }}
-        bounds="parent"
-        position={{
-          x: Math.round(field.position.x * scale),
-          y: Math.round(field.position.y * scale),
-        }}
-        size={{
-          width: Math.round(field.size.width * scale),
-          height: Math.round(field.size.height * scale),
-        }}
-        default={{
-          x: Math.round(field.position.x * scale),
-          y: Math.round(field.position.y * scale),
-          width: Math.round(field.size.width * scale),
-          height: Math.round(field.size.height * scale),
-        }}
-        disableDragging={isSelected}
+      <div
+        className="absolute z-20 rounded-sm bg-transparent px-2"
         style={{
-          zIndex: 20,
-          position: "absolute",
-          backgroundColor: "transparent",
+          left: Math.round(field.position.x * scale),
+          top: Math.round(field.position.y * scale),
           border: isSelected ? `1px solid ${recipient.color}` : `2px dashed ${recipient.color}`,
-          borderRadius: "4px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
           boxShadow: isSelected ? `0 0 0 1px ${recipient.color}, 0 0 8px rgba(0, 0, 0, 0.1)` : "none",
           transition: "box-shadow 0.2s ease",
         }}
+        onClick={(e) => {
+          e.stopPropagation()
+          selectField(field.id)
+        }}
+        data-field-id={fieldId}
+        data-field-type={field.type}
       >
-        <div
-          className="w-full h-full"
-          onDoubleClick={(e) => {
-            e.stopPropagation()
-            selectField(field.id)
-          }}
-          data-field-id={fieldId}
-          data-field-type={field.type}
-        >
-          {renderDefaultFieldContent()}
-        </div>
-      </Rnd>
+        {renderFieldContent()}
+      </div>
     )
   }
 
-  // For signer mode, use a static div (no dragging/resizing)
+  // For creator mode, render a draggable field with Rnd
   return (
-    <div
+    <Rnd
+      onDragStop={(e, d) => {
+        updateField({
+          id: fieldId,
+          position: {
+            x: Math.round(d.x / scale),
+            y: Math.round(d.y / scale),
+            pageIndex: field.position.pageIndex,
+          },
+        })
+      }}
+      onResizeStop={(e, direction, ref, delta, position) => {
+        const newWidth = Number.parseFloat(ref.style.width)
+        const newHeight = Number.parseFloat(ref.style.height)
+
+        // Update both position and size, accounting for scale
+        updateField({
+          id: fieldId,
+          position: {
+            x: Math.round(position.x / scale),
+            y: Math.round(position.y / scale),
+            pageIndex: field.position.pageIndex,
+          },
+          size: {
+            width: Math.round(newWidth / scale),
+            height: Math.round(newHeight / scale),
+          },
+        })
+      }}
+      bounds="parent"
+      position={{
+        x: Math.round(field.position.x * scale),
+        y: Math.round(field.position.y * scale),
+      }}
+      size={{
+        width: Math.round(field.size.width * scale),
+        height: Math.round(field.size.height * scale),
+      }}
+      default={{
+        x: Math.round(field.position.x * scale),
+        y: Math.round(field.position.y * scale),
+        width: Math.round(field.size.width * scale),
+        height: Math.round(field.size.height * scale),
+      }}
+      minWidth={MINIMUM_FIELD_WIDTH}
+      minHeight={MINIMUM_FIELD_HEIGHT}
+      disableDragging={isSelected}
       style={{
         zIndex: 20,
         position: "absolute",
-        left: Math.round(field.position.x * scale),
-        top: Math.round(field.position.y * scale),
-        width: Math.round(field.size.width * scale),
-        height: Math.round(field.size.height * scale),
         backgroundColor: "transparent",
-        border: isSelected
-          ? `2px solid ${recipient.color}`
-          : field.value
-            ? `1px solid ${recipient.color}`
-            : `2px dashed ${recipient.color}`,
+        border: isSelected ? `1px solid ${recipient.color}` : `2px dashed ${recipient.color}`,
         borderRadius: "4px",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         boxShadow: isSelected ? `0 0 0 1px ${recipient.color}, 0 0 8px rgba(0, 0, 0, 0.1)` : "none",
-        transition: "all 0.2s ease",
-        cursor: "pointer",
+        transition: "box-shadow 0.2s ease",
       }}
-      onClick={(e) => {
-        e.stopPropagation()
-        selectField(field.id)
-      }}
-      data-field-id={fieldId}
-      data-field-type={field.type}
     >
-      {renderFieldValue()}
-    </div>
+      <div
+        className="w-full h-full"
+        onDoubleClick={(e) => {
+          e.stopPropagation()
+          selectField(field.id)
+        }}
+        data-field-id={fieldId}
+        data-field-type={field.type}
+      >
+        {renderFieldContent()}
+      </div>
+    </Rnd>
   )
 })
 

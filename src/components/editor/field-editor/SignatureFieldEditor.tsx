@@ -1,29 +1,34 @@
 import type React from "react"
-import { useRef, useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import type { Field } from "@/types/pdf-editor"
-import { useEditorStore } from "@/store/useEditorStore"
 import { toast } from "sonner"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
+import { useRef, useState, useEffect } from "react"
 import { Eraser, Trash2, Undo } from "lucide-react"
 import SignatureCanvas from "react-signature-canvas"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+
+import { handwritingFonts } from "@/fonts"
+import { Button } from "@/components/ui/button"
+import type { Field } from "@/types/pdf-editor"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { useEditorStore } from "@/store/useEditorStore"
+
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger
+} from "@/components/ui/tabs"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select"
 
 interface SignatureFieldEditorProps {
   field: Field
   onClose: () => void
 }
-
-// Handwriting fonts for signature
-const handwritingFonts = [
-  { name: "Caveat", fontFamily: "Caveat, cursive", variable: "caveat" },
-  { name: "Dancing Script", fontFamily: "Dancing Script, cursive", variable: "dancing-script" },
-  { name: "Pacifico", fontFamily: "Pacifico, cursive", variable: "pacifico" },
-  { name: "Satisfy", fontFamily: "Satisfy, cursive", variable: "satisfy" },
-  { name: "Great Vibes", fontFamily: "Great Vibes, cursive", variable: "great-vibes" },
-]
 
 export const SignatureFieldEditor: React.FC<SignatureFieldEditorProps> = ({ field, onClose }) => {
   const updateField = useEditorStore((state) => state.updateField)
@@ -156,7 +161,7 @@ export const SignatureFieldEditor: React.FC<SignatureFieldEditorProps> = ({ fiel
 
             <div className="border rounded-md p-4 min-h-[100px] flex items-center justify-center">
               {inputValue ? (
-                <p className="text-xl" style={{ fontFamily: selectedFont }}>
+                <p className="text-3xl" style={{ fontFamily: selectedFont }}>
                   {inputValue}
                 </p>
               ) : (
@@ -205,7 +210,7 @@ export const SignatureFieldEditor: React.FC<SignatureFieldEditorProps> = ({ fiel
         </TabsContent>
       </Tabs>
 
-      <div className="flex justify-end space-x-2 pt-2">
+      <div className="flex justify-between space-x-2 pt-2">
         <Button
           variant="outline"
           size="sm"
@@ -216,9 +221,14 @@ export const SignatureFieldEditor: React.FC<SignatureFieldEditorProps> = ({ fiel
           <Trash2 className="mr-2 h-4 w-4" />
           Clear
         </Button>
-        <Button onClick={handleSave} disabled={activeTab === "draw" ? !hasSignature : !inputValue}>
-          Save
-        </Button>
+        <div className="flex space-x-2">
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave} disabled={activeTab === "draw" ? !hasSignature : !inputValue}>
+            Save
+          </Button>
+        </div>
       </div>
     </div>
   )
